@@ -9240,7 +9240,6 @@ any_find_first_slice(PyObject *str, const char *function_name,
     len1 = PyUnicode_GET_LENGTH(str);
     ADJUST_INDICES(start, end, len1);
     if (direction > 0) {
-        assert(FIND_CHUNK_SIZE > 0);
         Py_ssize_t chunk_start = start;
         for (; result == -1;) {
             Py_ssize_t chunk_end;
