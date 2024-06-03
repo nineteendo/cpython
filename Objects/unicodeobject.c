@@ -9256,7 +9256,10 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 substr = PyTuple_GET_ITEM(subobj, i);
                 new_result = chunk_find(buf1, kind1, isascii1, len1, substr,
                                         chunk_start, chunk_end, end, +1);
-                if (new_result != -1) {
+                if (new_result == -2) {
+                    return -2;
+                }
+                else if (new_result != -1) {
                     if (new_result == chunk_start) {
                         return chunk_start;
                     }
@@ -9288,7 +9291,10 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 substr = PyTuple_GET_ITEM(subobj, i);
                 new_result = chunk_find(buf1, kind1, isascii1, len1, substr,
                                         chunk_start, chunk_end, end, -1);
-                if (new_result != -1) {
+                if (new_result == -2) {
+                    return -2;
+                }
+                else if (new_result != -1) {
                     if (new_result == chunk_end) {
                         return chunk_end;
                     }
