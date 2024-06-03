@@ -615,7 +615,7 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
 }
 
 #define FIND_MIN_CHUNK_SIZE 32
-#define FIND_MAX_CHUNK_SIZE 16384
+#define FIND_MAX_CHUNK_SIZE 16384 // TODO: check if this can be lowered
 #define FIND_EXP_CHUNK_SIZE 2
 
 static Py_ssize_t
