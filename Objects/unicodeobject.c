@@ -9192,7 +9192,7 @@ chunk_find(const void *buf1, int kind1, int isascii1, int len1,
 #define RFIND_CHUNK_SIZE FIND_CHUNK_SIZE
 
 static Py_ssize_t
-any_find_first_slice(PyObject *strobj, const char *function_name,
+any_find_first_slice(PyObject *str, const char *function_name,
                      PyObject *subobj, Py_ssize_t start, Py_ssize_t end,
                      int direction)
 {
@@ -9204,11 +9204,11 @@ any_find_first_slice(PyObject *strobj, const char *function_name,
                         Py_TYPE(subobj)->tp_name);
             return -2;
         }
-        return any_find_slice(strobj, subobj, start, end, direction);
+        return any_find_slice(str, subobj, start, end, direction);
     }
-    Py_ssize_t tuple_len, result, len;
-    const void *str;
-    int kind, isascii;
+    Py_ssize_t tuple_len, result, len1;
+    const void *buf1;
+    int kind1, isascii1;
 
     tuple_len = PyTuple_GET_SIZE(subobj);
     if (tuple_len == 0) {
@@ -9226,14 +9226,14 @@ any_find_first_slice(PyObject *strobj, const char *function_name,
     }
     if (tuple_len == 1) {
         PyObject *substr = PyTuple_GET_ITEM(subobj, 0);
-        return any_find_slice(strobj, substr, start, end, direction);
+        return any_find_slice(str, substr, start, end, direction);
     }
     result = -1;
-    str = PyUnicode_DATA(strobj);
-    kind = PyUnicode_KIND(strobj);
-    isascii = PyUnicode_IS_ASCII(strobj);
-    len = PyUnicode_GET_LENGTH(strobj);
-    ADJUST_INDICES(start, end, len);
+    buf1 = PyUnicode_DATA(str);
+    kind1 = PyUnicode_KIND(str);
+    isascii1 = PyUnicode_IS_ASCII(str);
+    len1 = PyUnicode_GET_LENGTH(str);
+    ADJUST_INDICES(start, end, len1);
     if (direction > 0) {
         assert(FIND_CHUNK_SIZE > 0);
         Py_ssize_t chunk_start = start;
@@ -9250,7 +9250,7 @@ any_find_first_slice(PyObject *strobj, const char *function_name,
                 Py_ssize_t new_result;
 
                 substr = PyTuple_GET_ITEM(subobj, i);
-                new_result = chunk_find(str, kind, isascii, len, substr,
+                new_result = chunk_find(buf1, kind1, isascii1, len1, substr,
                                         chunk_start, chunk_end, end, +1);
                 if (new_result != -1) {
                     if (new_result == chunk_start) {
@@ -9278,7 +9278,7 @@ any_find_first_slice(PyObject *strobj, const char *function_name,
                 Py_ssize_t new_result;
 
                 substr = PyTuple_GET_ITEM(subobj, i);
-                new_result = chunk_find(str, kind, isascii, len, substr,
+                new_result = chunk_find(buf1, kind1, isascii1, len1, substr,
                                         chunk_start, chunk_end, end, -1);
                 if (new_result != -1) {
                     if (new_result == chunk_end) {
