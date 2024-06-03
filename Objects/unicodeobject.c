@@ -9188,8 +9188,9 @@ chunk_find(const void *buf1, int kind1, int isascii1, int len1,
     }
 }
 
-#define FIND_CHUNK_SIZE 1000
-#define RFIND_CHUNK_SIZE FIND_CHUNK_SIZE
+#define FIND_CHUNK_SIZE_START 1000
+#define FIND_CHUNK_SIZE_END   10000
+#define FIND_CHUNK_SIZE_STEP  1000
 
 static Py_ssize_t
 any_find_first_slice(PyObject *str, const char *function_name,
@@ -9206,7 +9207,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
         }
         return any_find_slice(str, subobj, start, end, direction);
     }
-    Py_ssize_t tuple_len, result, len1;
+    Py_ssize_t tuple_len, result, chunk_size, len1;
     const void *buf1;
     int kind1, isascii1;
 
@@ -9228,7 +9229,11 @@ any_find_first_slice(PyObject *str, const char *function_name,
         PyObject *substr = PyTuple_GET_ITEM(subobj, 0);
         return any_find_slice(str, substr, start, end, direction);
     }
+    assert(FIND_CHUNK_SIZE_START > 0);
+    assert(FIND_CHUNK_SIZE_START <= FIND_CHUNK_SIZE_END);
+    assert(FIND_CHUNK_SIZE_STEP >= 0);
     result = -1;
+    chunk_size = FIND_CHUNK_SIZE_START;
     buf1 = PyUnicode_DATA(str);
     kind1 = PyUnicode_KIND(str);
     isascii1 = PyUnicode_IS_ASCII(str);
@@ -9237,13 +9242,13 @@ any_find_first_slice(PyObject *str, const char *function_name,
     if (direction > 0) {
         assert(FIND_CHUNK_SIZE > 0);
         Py_ssize_t chunk_start = start;
-        for (; result == -1; chunk_start += FIND_CHUNK_SIZE) {
+        for (; result == -1;) {
             Py_ssize_t chunk_end;
-            if (chunk_start > end - FIND_CHUNK_SIZE + 1) { // Guard overflow
+            if (chunk_start > end - chunk_size + 1) { // Guard overflow
                 chunk_end = end;
             }
             else {
-                chunk_end = chunk_start - 1 + FIND_CHUNK_SIZE;
+                chunk_end = chunk_start - 1 + chunk_size;
             }
             for (Py_ssize_t i = 0; i < tuple_len; i++) {
                 PyObject *substr;
@@ -9260,16 +9265,20 @@ any_find_first_slice(PyObject *str, const char *function_name,
                     result = new_result;
                 }
             }
-            if (chunk_start > end - FIND_CHUNK_SIZE) {
+            if (chunk_start > end - chunk_size) {
                 break; // Guard overflow
+            }
+            chunk_start += chunk_size;
+            chunk_size += FIND_CHUNK_SIZE_STEP;
+            if (chunk_size > FIND_CHUNK_SIZE_END) {
+                chunk_size = FIND_CHUNK_SIZE_END;
             }
         }
     }
     else {
-        assert(RFIND_CHUNK_SIZE > 0);
         Py_ssize_t chunk_end = end;
-        for (; result == -1 && chunk_end >= start; chunk_end -= RFIND_CHUNK_SIZE) {
-            Py_ssize_t chunk_start = chunk_end - RFIND_CHUNK_SIZE + 1;
+        for (; result == -1 && chunk_end >= start;) {
+            Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
             if (chunk_start < start) {
                 chunk_start = start;
             }
@@ -9287,6 +9296,11 @@ any_find_first_slice(PyObject *str, const char *function_name,
                     chunk_start = new_result + 1;
                     result = new_result;
                 }
+            }
+            chunk_end -= chunk_size;
+            chunk_size += FIND_CHUNK_SIZE_STEP;
+            if (chunk_size > FIND_CHUNK_SIZE_END) {
+                chunk_size = FIND_CHUNK_SIZE_END;
             }
         }
     }

@@ -614,8 +614,9 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     return res;
 }
 
-#define FIND_CHUNK_SIZE 1000
-#define RFIND_CHUNK_SIZE FIND_CHUNK_SIZE
+#define FIND_CHUNK_SIZE_START 1000
+#define FIND_CHUNK_SIZE_END   10000
+#define FIND_CHUNK_SIZE_STEP  1000
 
 static Py_ssize_t
 find_first_internal(const char *str, Py_ssize_t len,
@@ -627,7 +628,7 @@ find_first_internal(const char *str, Py_ssize_t len,
         return find_internal(str, len, function_name, subobj, start, end,
                              direction);
     }
-    Py_ssize_t tuple_len, result;
+    Py_ssize_t tuple_len, result, chunk_size;
 
     tuple_len = PyTuple_GET_SIZE(subobj);
     if (tuple_len == 0) {
@@ -638,18 +639,21 @@ find_first_internal(const char *str, Py_ssize_t len,
         return find_internal(str, len, function_name, subseq, start, end,
                              direction);
     }
+    assert(FIND_CHUNK_SIZE_START > 0);
+    assert(FIND_CHUNK_SIZE_START <= FIND_CHUNK_SIZE_END);
+    assert(FIND_CHUNK_SIZE_STEP >= 0);
     result = -1;
+    chunk_size = FIND_CHUNK_SIZE_START;
     ADJUST_INDICES(start, end, len);
     if (direction > 0) {
-        assert(FIND_CHUNK_SIZE > 0);
         Py_ssize_t chunk_start = start;
-        for (; result == -1; chunk_start += FIND_CHUNK_SIZE) {
+        for (; result == -1;) {
             Py_ssize_t chunk_end;
-            if (chunk_start > end - FIND_CHUNK_SIZE + 1) { // Guard overflow
+            if (chunk_start > end - chunk_size + 1) { // Guard overflow
                 chunk_end = end;
             }
             else {
-                chunk_end = chunk_start - 1 + FIND_CHUNK_SIZE;
+                chunk_end = chunk_start - 1 + chunk_size;
             }
             for (Py_ssize_t i = 0; i < tuple_len; i++) {
                 PyObject *subseq;
@@ -669,16 +673,20 @@ find_first_internal(const char *str, Py_ssize_t len,
                     result = new_result;
                 }
             }
-            if (chunk_start > end - FIND_CHUNK_SIZE) {
+            if (chunk_start > end - chunk_size) {
                 break; // Guard overflow
+            }
+            chunk_start += chunk_size;
+            chunk_size += FIND_CHUNK_SIZE_STEP;
+            if (chunk_size > FIND_CHUNK_SIZE_END) {
+                chunk_size = FIND_CHUNK_SIZE_END;
             }
         }
     }
     else {
-        assert(RFIND_CHUNK_SIZE > 0);
         Py_ssize_t chunk_end = end;
-        for (; result == -1 && chunk_end >= start; chunk_end -= RFIND_CHUNK_SIZE) {
-            Py_ssize_t chunk_start = chunk_end - RFIND_CHUNK_SIZE + 1;
+        for (; result == -1 && chunk_end >= start;) {
+            Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
             if (chunk_start < start) {
                 chunk_start = start;
             }
@@ -699,6 +707,11 @@ find_first_internal(const char *str, Py_ssize_t len,
                     chunk_start = new_result + 1;
                     result = new_result;
                 }
+            }
+            chunk_end -= chunk_size;
+            chunk_size += FIND_CHUNK_SIZE_STEP;
+            if (chunk_size > FIND_CHUNK_SIZE_END) {
+                chunk_size = FIND_CHUNK_SIZE_END;
             }
         }
     }
