@@ -634,7 +634,7 @@ find_first_internal(const char *str, Py_ssize_t len,
     if (tuple_len == 0) {
         return -1;
     }
-    if (tuple_len == 1) {
+    else if (tuple_len == 1) {
         PyObject *subseq = PyTuple_GET_ITEM(subobj, 0);
         return find_internal(str, len, function_name, subseq, start, end,
                              direction);
