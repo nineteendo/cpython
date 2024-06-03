@@ -9158,7 +9158,7 @@ any_find_slice(PyObject* s1, PyObject* s2,
 }
 
 static Py_ssize_t
-chunk_find(const void *buf1, int kind1, int isascii1, int len1,
+chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
            PyObject* s2,
            Py_ssize_t chunk_start, Py_ssize_t chunk_end,
            Py_ssize_t end, int direction)
