@@ -614,7 +614,7 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     return res;
 }
 
-#define FIND_CHUNK_SIZE_START 1000
+#define FIND_CHUNK_SIZE_START 150
 #define FIND_CHUNK_SIZE_END   10000
 #define FIND_CHUNK_SIZE_STEP  1000
 

@@ -9188,7 +9188,7 @@ chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
     }
 }
 
-#define FIND_CHUNK_SIZE_START 1000
+#define FIND_CHUNK_SIZE_START 150
 #define FIND_CHUNK_SIZE_END   10000
 #define FIND_CHUNK_SIZE_STEP  1000
 
