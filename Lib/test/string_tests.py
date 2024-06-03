@@ -220,7 +220,7 @@ class BaseTest:
                     self.assertEqual(i[loc:loc+len(j)], j)
 
         # test tuple arguments
-        N = 1000  # FIND_CHUNK_SIZE_START
+        N = 150  # FIND_CHUNK_SIZE_START
         self.checkequal(0, 'foo', 'find', ('foo',))
         self.checkequal(-1, 'foo', 'find', ('bar',))
         self.checkequal(2, '__aa__bb__', 'find', ('aa', 'bb'))
@@ -301,7 +301,7 @@ class BaseTest:
         self.checkequal(0, '<......\u043c...', "rfind", "<")
 
         # test tuple arguments
-        N = 1000  # FIND_CHUNK_SIZE_START
+        N = 150  # FIND_CHUNK_SIZE_START
         self.checkequal(0, 'foo', 'rfind', ('foo',))
         self.checkequal(-1, 'foo', 'rfind', ('bar',))
         self.checkequal(6, '__aa__bb__', 'rfind', ('aa', 'bb'))
