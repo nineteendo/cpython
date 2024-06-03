@@ -9121,7 +9121,7 @@ fast_find(const void *buf1, int kind1, Py_ssize_t len1,
         }
     }
 
-    if (len2 != 1 && kind2 != kind1)
+    if (kind2 != kind1)
         PyMem_Free((void *)buf2);
 
     return result;
@@ -9158,34 +9158,33 @@ any_find_slice(PyObject* s1, PyObject* s2,
 }
 
 static Py_ssize_t
-chunk_find(const void *str, int kind, int isascii, int len,
-           PyObject* substr,
+chunk_find(const void *buf1, int kind1, int isascii1, int len1,
+           PyObject* s2,
            Py_ssize_t chunk_start, Py_ssize_t chunk_end,
            Py_ssize_t end, int direction)
 {
-    int sub_kind, sub_isascii;
-    const void *sub;
-    Py_ssize_t sub_len;
+    int kind2, isascii2;
+    const void *buf2;
+    Py_ssize_t len2;
 
-    sub_kind = PyUnicode_KIND(substr);
-    if (sub_kind > kind) {
+    kind2 = PyUnicode_KIND(s2);
+    if (kind1 < kind2)
         return -1;
-    }
 
-    sub_isascii = PyUnicode_IS_ASCII(substr);
-    if (!sub_isascii && isascii) {
+    isascii2 = PyUnicode_IS_ASCII(s2);
+    if (!isascii2 && isascii1)
         return -1;
-    }
 
-    sub = PyUnicode_DATA(substr);
-    sub_len = PyUnicode_GET_LENGTH(substr);
-    if (chunk_end >= end - sub_len) { // Guard overflow
-        return fast_find(str, kind, len, sub, sub_kind, sub_len, chunk_start,
-                         end, isascii, direction);
+    len2 = PyUnicode_GET_LENGTH(s2);
+    buf2 = PyUnicode_DATA(s2);
+
+    if (chunk_end >= end - len2) { // Guard overflow
+        return fast_find(buf1, kind1, len1, buf2, kind2, len2, chunk_start,
+                         end, isascii1, direction);
     }
     else {
-        return fast_find(str, kind, len, sub, sub_kind, sub_len, chunk_start,
-                         chunk_end + sub_len, isascii, direction);
+        return fast_find(buf1, kind1, len1, buf2, kind2, len2, chunk_start,
+                         chunk_end + len2, isascii1, direction);
     }
 }
 

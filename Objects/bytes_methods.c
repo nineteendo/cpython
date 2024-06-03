@@ -585,7 +585,8 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
         return -2;
     }
-    else if (subobj) {
+
+    if (subobj) {
         if (PyObject_GetBuffer(subobj, &subbuf, PyBUF_SIMPLE) != 0) {
             return -2;
         }
@@ -606,9 +607,9 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
                                chunk_end + sub_len, direction);
     }
 
-    if (subobj) {
+    if (subobj)
         PyBuffer_Release(&subbuf);
-    }
+
     return result;
 }
 
