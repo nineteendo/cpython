@@ -580,7 +580,8 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     char byte;
     Py_buffer subbuf;
     const char *sub;
-    Py_ssize_t sub_len, result;
+    Py_ssize_t sub_len;
+    Py_ssize_t res;
 
     if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
         return -2;
@@ -599,18 +600,18 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     }
 
     if (chunk_end >= end - sub_len) { // Guard overflow
-        result = _Py_fast_find(str, len, sub, sub_len, chunk_start, end,
-                               direction);
+        res = _Py_fast_find(str, len, sub, sub_len, chunk_start, end,
+                            direction);
     }
     else {
-        result = _Py_fast_find(str, len, sub, sub_len, chunk_start,
-                               chunk_end + sub_len, direction);
+        res = _Py_fast_find(str, len, sub, sub_len, chunk_start,
+                            chunk_end + sub_len, direction);
     }
 
     if (subobj)
         PyBuffer_Release(&subbuf);
 
-    return result;
+    return res;
 }
 
 #define FIND_CHUNK_SIZE 1000
