@@ -571,6 +571,47 @@ find_internal(const char *str, Py_ssize_t len,
     return res;
 }
 
+static Py_ssize_t
+_Py_chunk_find(const char *str, Py_ssize_t len,
+               const char *function_name, PyObject *subobj,
+               Py_ssize_t chunk_start, Py_ssize_t chunk_end,
+               Py_ssize_t end, int direction)
+{
+    char byte;
+    Py_buffer subbuf;
+    const char *sub;
+    Py_ssize_t sub_len, result;
+
+    if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
+        return -2;
+    }
+    else if (subobj) {
+        if (PyObject_GetBuffer(subobj, &subbuf, PyBUF_SIMPLE) != 0) {
+            return -2;
+        }
+        sub = subbuf.buf;
+        sub_len = subbuf.len;
+    }
+    else {
+        sub = &byte;
+        sub_len = 1;
+    }
+
+    if (chunk_end >= end - sub_len) { // Guard overflow
+        result = _Py_fast_find(str, len, sub, sub_len, chunk_start, end,
+                               direction);
+    }
+    else {
+        result = _Py_fast_find(str, len, sub, sub_len, chunk_start,
+                               chunk_end + sub_len, direction);
+    }
+
+    if (subobj) {
+        PyBuffer_Release(&subbuf);
+    }
+    return result;
+}
+
 #define FIND_CHUNK_SIZE 1000
 #define RFIND_CHUNK_SIZE FIND_CHUNK_SIZE
 
@@ -584,171 +625,81 @@ find_first_internal(const char *str, Py_ssize_t len,
         return find_internal(str, len, function_name, subobj, start, end,
                              direction);
     }
-    Py_ssize_t result, buffers_len, tuple_len, subs_len;
-    char *bytes = NULL;
-    Py_buffer *buffers = NULL;
-    const char **subs = NULL;
-    Py_ssize_t *sub_lens = NULL;
+    Py_ssize_t tuple_len, result;
 
-    /* ALLOCATE MEMORY */
-    result = -2; // Error
-    buffers_len = 0;
     tuple_len = PyTuple_GET_SIZE(subobj);
-    if ((size_t)tuple_len > (size_t)PY_SSIZE_T_MAX / sizeof(char) ||
-        (size_t)tuple_len > (size_t)PY_SSIZE_T_MAX / sizeof(Py_buffer) ||
-        (size_t)tuple_len > (size_t)PY_SSIZE_T_MAX / sizeof(char *) ||
-        (size_t)tuple_len > (size_t)PY_SSIZE_T_MAX / sizeof(Py_ssize_t))
-    {
-        PyErr_SetString(PyExc_OverflowError, "tuple is too long");
-        goto exit;
+    if (tuple_len == 0) {
+        return -1;
     }
-    bytes = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(char));
-    if (!bytes) {
-        PyErr_NoMemory();
-        goto exit;
+    if (tuple_len == 1) {
+        PyObject *subseq = PyTuple_GET_ITEM(subobj, 0);
+        return find_internal(str, len, function_name, subseq, start, end,
+                             direction);
     }
-    buffers = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(Py_buffer));
-    if (!buffers) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    subs = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(char *));
-    if (!subs) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    sub_lens = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(Py_ssize_t));
-    if (!sub_lens) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-
-    /* STORE SUBSTRINGS */
+    result = -1;
     ADJUST_INDICES(start, end, len);
-    subs_len = 0;
-    for (Py_ssize_t i = 0; i < tuple_len; i++) {
-        PyObject *subseq;
-        char *byte, *sub;
-        Py_buffer *buffer;
-        Py_ssize_t sub_len;
-
-        subseq = PyTuple_GET_ITEM(subobj, i);
-        byte = &bytes[subs_len];
-        buffer = &buffers[buffers_len];
-        if (!parse_args_finds_byte(function_name, &subseq, byte)) {
-            goto exit;
-        }
-        else if (subseq) {
-            if (PyObject_GetBuffer(subseq, buffer, PyBUF_SIMPLE) != 0) {
-                goto exit;
-            }
-            sub = buffer->buf;
-            sub_len = buffer->len;
-            buffers_len++;
-        }
-        else {
-            sub = byte;
-            sub_len = 1;
-        }
-        if (sub_len <= end - start) {
-            subs[subs_len] = sub;
-            sub_lens[subs_len] = sub_len;
-            subs_len++;
-        }
-    }
-
-    /* FIND SUBSTRINGS */
-    result = -1; // Not found (yet)
-    if (subs_len == 0) {
-        goto exit;
-    }
-    if (subs_len == 1) {
-        result = _Py_fast_find(str, len, subs[0], sub_lens[0], start, end,
-                               direction);
-        goto exit;
-    }
     if (direction > 0) {
         assert(FIND_CHUNK_SIZE > 0);
-        for (; result == -1; start += FIND_CHUNK_SIZE) {
-            Py_ssize_t cur_end;
-            if (start > end - FIND_CHUNK_SIZE + 1) { // Guard overflow
-                cur_end = end;
+        Py_ssize_t chunk_start = start;
+        for (; result == -1; chunk_start += FIND_CHUNK_SIZE) {
+            Py_ssize_t chunk_end;
+            if (chunk_start > end - FIND_CHUNK_SIZE + 1) { // Guard overflow
+                chunk_end = end;
             }
             else {
-                cur_end = start - 1 + FIND_CHUNK_SIZE;
+                chunk_end = chunk_start - 1 + FIND_CHUNK_SIZE;
             }
-            for (Py_ssize_t i = 0; i < subs_len; i++) {
-                const char *sub;
-                Py_ssize_t sub_len, new_result;
+            for (Py_ssize_t i = 0; i < tuple_len; i++) {
+                PyObject *subseq;
+                Py_ssize_t new_result;
 
-                sub = subs[i];
-                sub_len = sub_lens[i];
-                if (cur_end >= end - sub_len) { // Guard overflow
-                    new_result = _Py_fast_find(str, len, sub, sub_len, start,
-                                               end, +1);
+                subseq = PyTuple_GET_ITEM(subobj, i);
+                new_result = _Py_chunk_find(str, len, function_name, subseq,
+                                            chunk_start, chunk_end, end, +1);
+                if (new_result == -2) {
+                    return -2;
                 }
-                else {
-                    new_result = _Py_fast_find(str, len, sub, sub_len, start,
-                                               cur_end + sub_len, +1);
-                }
-                if (new_result != -1) {
-                    if (new_result == start) {
-                        result = start;
-                        goto exit;
+                else if (new_result != -1) {
+                    if (new_result == chunk_start) {
+                        return chunk_start;
                     }
-                    cur_end = new_result - 1;
+                    chunk_end = new_result - 1;
                     result = new_result;
                 }
             }
-            if (start > end - FIND_CHUNK_SIZE) {
+            if (chunk_start > end - FIND_CHUNK_SIZE) {
                 break; // Guard overflow
             }
         }
     }
     else {
         assert(RFIND_CHUNK_SIZE > 0);
-        Py_ssize_t cur_end = end;
-        for (; result == -1 && cur_end >= start; cur_end -= RFIND_CHUNK_SIZE) {
-            Py_ssize_t cur_start = cur_end - RFIND_CHUNK_SIZE + 1;
-            if (cur_start < start) {
-                cur_start = start;
+        Py_ssize_t chunk_end = end;
+        for (; result == -1 && chunk_end >= start; chunk_end -= RFIND_CHUNK_SIZE) {
+            Py_ssize_t chunk_start = chunk_end - RFIND_CHUNK_SIZE + 1;
+            if (chunk_start < start) {
+                chunk_start = start;
             }
-            for (Py_ssize_t i = 0; i < subs_len; i++) {
-                const char *sub;
-                Py_ssize_t sub_len, new_result;
+            for (Py_ssize_t i = 0; i < tuple_len; i++) {
+                PyObject *subseq;
+                Py_ssize_t new_result;
 
-                sub = subs[i];
-                sub_len = sub_lens[i];
-                if (cur_end >= end - sub_len) { // Guard overflow
-                    new_result = _Py_fast_find(str, len, sub, sub_len,
-                                               cur_start, end, -1);
+                subseq = PyTuple_GET_ITEM(subobj, i);
+                new_result = _Py_chunk_find(str, len, function_name, subseq,
+                                            chunk_start, chunk_end, end, -1);
+                if (new_result == -2) {
+                    return -2;
                 }
-                else {
-                    new_result = _Py_fast_find(str, len, sub, sub_len,
-                                               cur_start, cur_end + sub_len,
-                                               -1);
-                }
-                if (new_result != -1) {
-                    if (new_result == cur_end) {
-                        result = cur_end;
-                        goto exit;
+                else if (new_result != -1) {
+                    if (new_result == chunk_end) {
+                        return chunk_end;
                     }
-                    cur_start = new_result + 1;
+                    chunk_start = new_result + 1;
                     result = new_result;
                 }
             }
         }
     }
-exit:
-    PyMem_RawFree(bytes);
-    if (buffers) {
-        for (Py_ssize_t i = 0; i < buffers_len; i++) {
-            PyBuffer_Release(&buffers[i]);
-        }
-    }
-    PyMem_RawFree(buffers);
-    PyMem_RawFree(subs);
-    PyMem_RawFree(sub_lens);
     return result;
 }
 

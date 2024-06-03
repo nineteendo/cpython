@@ -9078,6 +9078,12 @@ fast_find(const void *buf1, int kind1, Py_ssize_t len1,
             return start + result;
     }
 
+    if (kind2 != kind1) {
+        buf2 = unicode_askind(kind2, buf2, len2, kind1);
+        if (!buf2)
+            return -2;
+    }
+
     if (direction > 0) {
         switch (kind1) {
         case PyUnicode_1BYTE_KIND:
@@ -9115,6 +9121,9 @@ fast_find(const void *buf1, int kind1, Py_ssize_t len1,
         }
     }
 
+    if (len2 != 1 && kind2 != kind1)
+        PyMem_Free((void *)buf2);
+
     return result;
 }
 
@@ -9125,7 +9134,7 @@ any_find_slice(PyObject* s1, PyObject* s2,
 {
     int kind1, kind2, isascii1, isascii2;
     const void *buf1, *buf2;
-    Py_ssize_t len1, len2, result;
+    Py_ssize_t len1, len2;
 
     kind1 = PyUnicode_KIND(s1);
     kind2 = PyUnicode_KIND(s2);
@@ -9143,20 +9152,41 @@ any_find_slice(PyObject* s1, PyObject* s2,
 
     buf1 = PyUnicode_DATA(s1);
     buf2 = PyUnicode_DATA(s2);
-    if (len2 != 1 && kind2 != kind1) {
-        buf2 = unicode_askind(kind2, buf2, len2, kind1);
-        if (!buf2)
-            return -2;
+
+    return fast_find(buf1, kind1, len1, buf2, kind2, len2, start, end,
+                     isascii1, direction);
+}
+
+static Py_ssize_t
+chunk_find(const void *str, int kind, int isascii, int len,
+           PyObject* substr,
+           Py_ssize_t chunk_start, Py_ssize_t chunk_end,
+           Py_ssize_t end, int direction)
+{
+    int sub_kind, sub_isascii;
+    const void *sub;
+    Py_ssize_t sub_len;
+
+    sub_kind = PyUnicode_KIND(substr);
+    if (sub_kind > kind) {
+        return -1;
     }
 
-    result = fast_find(buf1, kind1, len1, buf2, kind2, len2, start, end,
-                       isascii1, direction);
+    sub_isascii = PyUnicode_IS_ASCII(substr);
+    if (!sub_isascii && isascii) {
+        return -1;
+    }
 
-    assert((len2 != 1 && kind2 != kind1) == (buf2 != PyUnicode_DATA(s2)));
-    if (len2 != 1 && kind2 != kind1)
-        PyMem_Free((void *)buf2);
-
-    return result;
+    sub = PyUnicode_DATA(substr);
+    sub_len = PyUnicode_GET_LENGTH(substr);
+    if (chunk_end >= end - sub_len) { // Guard overflow
+        return fast_find(str, kind, len, sub, sub_kind, sub_len, chunk_start,
+                         end, isascii, direction);
+    }
+    else {
+        return fast_find(str, kind, len, sub, sub_kind, sub_len, chunk_start,
+                         chunk_end + sub_len, isascii, direction);
+    }
 }
 
 #define FIND_CHUNK_SIZE 1000
@@ -9177,185 +9207,90 @@ any_find_first_slice(PyObject *strobj, const char *function_name,
         }
         return any_find_slice(strobj, subobj, start, end, direction);
     }
-    Py_ssize_t result, subs_len, tuple_len, len;
-    const void **heap_subs = NULL, **subs = NULL;
-    int *sub_kinds = NULL;
-    Py_ssize_t *sub_lens = NULL;
+    Py_ssize_t tuple_len, result, len;
     const void *str;
     int kind, isascii;
 
-    /* ALLOCATE MEMORY */
-    result = -2; // Error
-    subs_len = 0;
     tuple_len = PyTuple_GET_SIZE(subobj);
-    if ((size_t)tuple_len > (size_t)PY_SSIZE_T_MAX / sizeof(void *) ||
-        (size_t)tuple_len > (size_t)PY_SSIZE_T_MAX / sizeof(int) ||
-        (size_t)tuple_len > (size_t)PY_SSIZE_T_MAX / sizeof(Py_ssize_t))
-    {
-        PyErr_SetString(PyExc_OverflowError, "tuple is too long");
-        goto exit;
+    if (tuple_len == 0) {
+        return -1;
     }
-    heap_subs = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(void *));
-    if (!heap_subs) {
-        PyErr_NoMemory();
-        goto exit;
+    for (Py_ssize_t i = 0; i < tuple_len; i++) {
+        PyObject *substr = PyTuple_GET_ITEM(subobj, i);
+        if (!PyUnicode_Check(substr)) {
+            PyErr_Format(PyExc_TypeError,
+                        "tuple for %.200s must only contain str, "
+                        "not %.100s", function_name,
+                        Py_TYPE(substr)->tp_name);
+            return -2;
+        }
     }
-    subs = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(void *));
-    if (!subs) {
-        PyErr_NoMemory();
-        goto exit;
+    if (tuple_len == 1) {
+        PyObject *substr = PyTuple_GET_ITEM(subobj, 0);
+        return any_find_slice(strobj, substr, start, end, direction);
     }
-    sub_kinds = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(int));
-    if (!sub_kinds) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-    sub_lens = PyMem_RawMalloc(((size_t)tuple_len) * sizeof(Py_ssize_t));
-    if (!sub_lens) {
-        PyErr_NoMemory();
-        goto exit;
-    }
-
-    /* STORE SUBSTRINGS */
+    result = -1;
     str = PyUnicode_DATA(strobj);
     kind = PyUnicode_KIND(strobj);
     isascii = PyUnicode_IS_ASCII(strobj);
     len = PyUnicode_GET_LENGTH(strobj);
     ADJUST_INDICES(start, end, len);
-    for (Py_ssize_t i = 0; i < tuple_len; i++) {
-        PyObject *substr;
-        int sub_kind, sub_isascii;
-        Py_ssize_t sub_len;
-
-        substr = PyTuple_GET_ITEM(subobj, i);
-        if (!PyUnicode_Check(substr)) {
-            PyErr_Format(PyExc_TypeError,
-                        "tuple for %.200s must only contain str, "
-                        "not %.100s", function_name, Py_TYPE(substr)->tp_name);
-            goto exit;
-        }
-        sub_kind = PyUnicode_KIND(substr);
-        sub_isascii = PyUnicode_IS_ASCII(substr);
-        sub_len = PyUnicode_GET_LENGTH(substr);
-        if (sub_kind <= kind && (sub_isascii || !isascii) &&
-            sub_len <= end - start)
-        {
-            const void *sub = PyUnicode_DATA(substr);
-            if (sub_len == 1 || sub_kind == kind) {
-                heap_subs[subs_len] = NULL;
-            }
-            else {
-                sub = unicode_askind(sub_kind, sub, sub_len, kind);
-                if (!sub) {
-                    goto exit;
-                }
-                heap_subs[subs_len] = sub;
-            }
-            subs[subs_len] = sub;
-            sub_kinds[subs_len] = sub_kind;
-            sub_lens[subs_len] = sub_len;
-            subs_len++;
-        }
-    }
-
-    /* FIND SUBSTRINGS */
-    result = -1; // Not found (yet)
-    if (subs_len == 0) {
-        goto exit;
-    }
-    if (subs_len == 1) {
-        result = fast_find(str, kind, len, subs[0], sub_kinds[0], sub_lens[0],
-                           start, end, isascii, direction);
-        goto exit;
-    }
     if (direction > 0) {
         assert(FIND_CHUNK_SIZE > 0);
-        for (; result == -1; start += FIND_CHUNK_SIZE) {
-            Py_ssize_t cur_end;
-            if (start > end - FIND_CHUNK_SIZE + 1) { // Guard overflow
-                cur_end = end;
+        Py_ssize_t chunk_start = start;
+        for (; result == -1; chunk_start += FIND_CHUNK_SIZE) {
+            Py_ssize_t chunk_end;
+            if (chunk_start > end - FIND_CHUNK_SIZE + 1) { // Guard overflow
+                chunk_end = end;
             }
             else {
-                cur_end = start - 1 + FIND_CHUNK_SIZE;
+                chunk_end = chunk_start - 1 + FIND_CHUNK_SIZE;
             }
-            for (Py_ssize_t i = 0; i < subs_len; i++) {
-                const void *sub;
-                int sub_kind;
-                Py_ssize_t sub_len, new_result;
+            for (Py_ssize_t i = 0; i < tuple_len; i++) {
+                PyObject *substr;
+                Py_ssize_t new_result;
 
-                sub = subs[i];
-                sub_kind = sub_kinds[i];
-                sub_len = sub_lens[i];
-                if (cur_end >= end - sub_len) { // Guard overflow
-                    new_result = fast_find(str, kind, len, sub, sub_kind,
-                                           sub_len, start, end, isascii, +1);
-                }
-                else {
-                    new_result = fast_find(str, kind, len, sub, sub_kind,
-                                           sub_len, start, cur_end + sub_len,
-                                           isascii, +1);
-                }
+                substr = PyTuple_GET_ITEM(subobj, i);
+                new_result = chunk_find(str, kind, isascii, len, substr,
+                                        chunk_start, chunk_end, end, +1);
                 if (new_result != -1) {
-                    if (new_result == start) {
-                        result = start;
-                        goto exit;
+                    if (new_result == chunk_start) {
+                        return chunk_start;
                     }
-                    cur_end = new_result - 1;
+                    chunk_end = new_result - 1;
                     result = new_result;
                 }
             }
-            if (start > end - FIND_CHUNK_SIZE) {
+            if (chunk_start > end - FIND_CHUNK_SIZE) {
                 break; // Guard overflow
             }
         }
     }
     else {
         assert(RFIND_CHUNK_SIZE > 0);
-        Py_ssize_t cur_end = end;
-        for (; result == -1 && cur_end >= start; cur_end -= RFIND_CHUNK_SIZE) {
-            Py_ssize_t cur_start = cur_end - RFIND_CHUNK_SIZE + 1;
-            if (cur_start < start) {
-                cur_start = start;
+        Py_ssize_t chunk_end = end;
+        for (; result == -1 && chunk_end >= start; chunk_end -= RFIND_CHUNK_SIZE) {
+            Py_ssize_t chunk_start = chunk_end - RFIND_CHUNK_SIZE + 1;
+            if (chunk_start < start) {
+                chunk_start = start;
             }
-            for (Py_ssize_t i = 0; i < subs_len; i++) {
-                const void *sub;
-                int sub_kind;
-                Py_ssize_t sub_len, new_result;
+            for (Py_ssize_t i = 0; i < tuple_len; i++) {
+                PyObject *substr;
+                Py_ssize_t new_result;
 
-                sub = subs[i];
-                sub_kind = sub_kinds[i];
-                sub_len = sub_lens[i];
-                if (cur_end >= end - sub_len) { // Guard overflow
-                    new_result = fast_find(str, kind, len, sub, sub_kind,
-                                           sub_len, cur_start, end, isascii,
-                                           -1);
-                }
-                else {
-                    new_result = fast_find(str, kind, len, sub, sub_kind,
-                                           sub_len, cur_start,
-                                           cur_end + sub_len, isascii, -1);
-                }
+                substr = PyTuple_GET_ITEM(subobj, i);
+                new_result = chunk_find(str, kind, isascii, len, substr,
+                                        chunk_start, chunk_end, end, -1);
                 if (new_result != -1) {
-                    if (new_result == cur_end) {
-                        result = cur_end;
-                        goto exit;
+                    if (new_result == chunk_end) {
+                        return chunk_end;
                     }
-                    cur_start = new_result + 1;
+                    chunk_start = new_result + 1;
                     result = new_result;
                 }
             }
         }
     }
-exit:
-    if (heap_subs) {
-        for (Py_ssize_t i = 0; i < subs_len; i++) {
-            PyMem_Free((void *)heap_subs[i]);
-        }
-    }
-    PyMem_RawFree(heap_subs);
-    PyMem_RawFree(subs);
-    PyMem_RawFree(sub_kinds);
-    PyMem_RawFree(sub_lens);
     return result;
 }
 
