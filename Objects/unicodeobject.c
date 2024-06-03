@@ -9188,9 +9188,9 @@ chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
     }
 }
 
-#define FIND_CHUNK_SIZE_START 150
-#define FIND_CHUNK_SIZE_END   10000
-#define FIND_CHUNK_SIZE_STEP  1000
+#define FIND_MIN_CHUNK_SIZE 32
+#define FIND_MAX_CHUNK_SIZE 16384
+#define FIND_EXP_CHUNK_SIZE 2
 
 static Py_ssize_t
 any_find_first_slice(PyObject *str, const char *function_name,
@@ -9229,11 +9229,11 @@ any_find_first_slice(PyObject *str, const char *function_name,
         PyObject *substr = PyTuple_GET_ITEM(subobj, 0);
         return any_find_slice(str, substr, start, end, direction);
     }
-    assert(FIND_CHUNK_SIZE_START > 0);
-    assert(FIND_CHUNK_SIZE_START <= FIND_CHUNK_SIZE_END);
-    assert(FIND_CHUNK_SIZE_STEP >= 0);
+    assert(FIND_MIN_CHUNK_SIZE > 0);
+    assert(FIND_MAX_CHUNK_SIZE >= FIND_MIN_CHUNK_SIZE);
+    assert(FIND_EXP_CHUNK_SIZE >= 1);
     result = -1;
-    chunk_size = FIND_CHUNK_SIZE_START;
+    chunk_size = FIND_MIN_CHUNK_SIZE;
     buf1 = PyUnicode_DATA(str);
     kind1 = PyUnicode_KIND(str);
     isascii1 = PyUnicode_IS_ASCII(str);
@@ -9268,9 +9268,9 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 break; // Guard overflow
             }
             chunk_start += chunk_size;
-            chunk_size += FIND_CHUNK_SIZE_STEP;
-            if (chunk_size > FIND_CHUNK_SIZE_END) {
-                chunk_size = FIND_CHUNK_SIZE_END;
+            chunk_size *= FIND_EXP_CHUNK_SIZE;
+            if (chunk_size > FIND_MAX_CHUNK_SIZE) {
+                chunk_size = FIND_MAX_CHUNK_SIZE;
             }
         }
     }
@@ -9297,9 +9297,9 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 }
             }
             chunk_end -= chunk_size;
-            chunk_size += FIND_CHUNK_SIZE_STEP;
-            if (chunk_size > FIND_CHUNK_SIZE_END) {
-                chunk_size = FIND_CHUNK_SIZE_END;
+            chunk_size *= FIND_EXP_CHUNK_SIZE;
+            if (chunk_size > FIND_MAX_CHUNK_SIZE) {
+                chunk_size = FIND_MAX_CHUNK_SIZE;
             }
         }
     }

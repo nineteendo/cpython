@@ -220,7 +220,7 @@ class BaseTest:
                     self.assertEqual(i[loc:loc+len(j)], j)
 
         # test tuple arguments
-        N = 150  # FIND_CHUNK_SIZE_START
+        MIN = 32  # FIND_MIN_CHUNK_SIZE
         self.checkequal(0, 'foo', 'find', ('foo',))
         self.checkequal(-1, 'foo', 'find', ('bar',))
         self.checkequal(2, '__aa__bb__', 'find', ('aa', 'bb'))
@@ -233,16 +233,16 @@ class BaseTest:
         self.checkequal(-1, '__aa__bb__', 'find', ('aa', 'bb'), 0, 3)
         self.checkequal(2, '__aa__bb__', 'find', ('aa', 'bb'), 0, 4)
         self.checkraises(TypeError, 'hello', 'find', (1.0, 2.0))
-        s = '_' * (N - 2) + 'aaaa' + '_' * (N - 2)
-        self.checkequal((N - 2), s, 'find', ('aaaa', 'bb'))
+        s = '_' * (MIN - 2) + 'aaaa' + '_' * (MIN - 2)
+        self.checkequal((MIN - 2), s, 'find', ('aaaa', 'bb'))
         self.checkequal(2, 'foobar', 'find', ('ob', 'oba'))
         self.checkequal(1, 'foobar', 'find', ('ob', 'oob'))
         self.checkequal(0, '', 'find', ('', 'a'))
         self.checkequal(2, '__abcd__', 'find', ('cd', 'ab'))
         self.checkequal(2, '__abc__', 'find', ('bc', 'ab'))
-        self.checkequal(1, 'a' + 'b' * N, 'find', ('b' * N, 'c'))
-        s = 'ab' + 'c' * (10 * N)
-        self.checkequal(1, s, 'find', ('c' * (10 * N), 'b' + 'c' * (10 * N)))
+        self.checkequal(1, 'a' + 'b' * MIN, 'find', ('b' * MIN, 'c'))
+        s = 'ab' + 'c' * (10 * MIN)
+        self.checkequal(1, s, 'find', ('c' * (10 * MIN), 'b' + 'c' * (10 * MIN)))
         self.checkequal(0, 'foobar', 'find', ('foo', 'bar'))
 
     def test_rfind(self):
@@ -301,7 +301,7 @@ class BaseTest:
         self.checkequal(0, '<......\u043c...', "rfind", "<")
 
         # test tuple arguments
-        N = 150  # FIND_CHUNK_SIZE_START
+        MIN = 32  # FIND_MIN_CHUNK_SIZE
         self.checkequal(0, 'foo', 'rfind', ('foo',))
         self.checkequal(-1, 'foo', 'rfind', ('bar',))
         self.checkequal(6, '__aa__bb__', 'rfind', ('aa', 'bb'))
@@ -313,16 +313,16 @@ class BaseTest:
         self.checkequal(-1, '__aa__bb__', 'rfind', ('aa', 'bb'), 7, 10)
         self.checkequal(6, '__aa__bb__', 'rfind', ('aa', 'bb'), 6, 10)
         self.checkraises(TypeError, 'hello', 'rfind', (1.0, 2.0))
-        s = '_' * (N - 2) + 'aaaa' + '_' * (N - 2)
-        self.checkequal((N - 2), s, 'rfind', ('aaaa', 'bb'))
+        s = '_' * (MIN - 2) + 'aaaa' + '_' * (MIN - 2)
+        self.checkequal((MIN - 2), s, 'rfind', ('aaaa', 'bb'))
         self.checkequal(2, 'foobar', 'rfind', ('oba', 'ob'))
         self.checkequal(2, 'foobar', 'rfind', ('oob', 'ob'))
         self.checkequal(0, '', 'rfind', ('', 'a'))
         self.checkequal(4, '__abcd__', 'rfind', ('ab', 'cd'))
         self.checkequal(3, '__abc__', 'rfind', ('ab', 'bc'))
-        self.checkequal(0, 'b' * N + 'a', 'rfind', ('b' * N, 'c'))
-        s = 'ab' + 'c' * (10 * N)
-        self.checkequal(2, s, 'rfind', ('c' * (10 * N), 'b' + 'c' * (10 * N)))
+        self.checkequal(0, 'b' * MIN + 'a', 'rfind', ('b' * MIN, 'c'))
+        s = 'ab' + 'c' * (10 * MIN)
+        self.checkequal(2, s, 'rfind', ('c' * (10 * MIN), 'b' + 'c' * (10 * MIN)))
         self.checkequal(3, 'foo', 'rfind', ('', 'foo'))
         self.checkequal(-1, 'foo', 'rfind', ('foobar',))
 

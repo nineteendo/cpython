@@ -614,9 +614,9 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     return res;
 }
 
-#define FIND_CHUNK_SIZE_START 150
-#define FIND_CHUNK_SIZE_END   10000
-#define FIND_CHUNK_SIZE_STEP  1000
+#define FIND_MIN_CHUNK_SIZE 32
+#define FIND_MAX_CHUNK_SIZE 16384
+#define FIND_EXP_CHUNK_SIZE 2
 
 static Py_ssize_t
 find_first_internal(const char *str, Py_ssize_t len,
@@ -639,11 +639,11 @@ find_first_internal(const char *str, Py_ssize_t len,
         return find_internal(str, len, function_name, subseq, start, end,
                              direction);
     }
-    assert(FIND_CHUNK_SIZE_START > 0);
-    assert(FIND_CHUNK_SIZE_START <= FIND_CHUNK_SIZE_END);
-    assert(FIND_CHUNK_SIZE_STEP >= 0);
+    assert(FIND_MIN_CHUNK_SIZE > 0);
+    assert(FIND_MAX_CHUNK_SIZE >= FIND_MIN_CHUNK_SIZE);
+    assert(FIND_EXP_CHUNK_SIZE >= 1);
     result = -1;
-    chunk_size = FIND_CHUNK_SIZE_START;
+    chunk_size = FIND_MIN_CHUNK_SIZE;
     ADJUST_INDICES(start, end, len);
     if (direction > 0) {
         Py_ssize_t chunk_start = start;
@@ -677,9 +677,9 @@ find_first_internal(const char *str, Py_ssize_t len,
                 break; // Guard overflow
             }
             chunk_start += chunk_size;
-            chunk_size += FIND_CHUNK_SIZE_STEP;
-            if (chunk_size > FIND_CHUNK_SIZE_END) {
-                chunk_size = FIND_CHUNK_SIZE_END;
+            chunk_size *= FIND_EXP_CHUNK_SIZE;
+            if (chunk_size > FIND_MAX_CHUNK_SIZE) {
+                chunk_size = FIND_MAX_CHUNK_SIZE;
             }
         }
     }
@@ -709,9 +709,9 @@ find_first_internal(const char *str, Py_ssize_t len,
                 }
             }
             chunk_end -= chunk_size;
-            chunk_size += FIND_CHUNK_SIZE_STEP;
-            if (chunk_size > FIND_CHUNK_SIZE_END) {
-                chunk_size = FIND_CHUNK_SIZE_END;
+            chunk_size *= FIND_EXP_CHUNK_SIZE;
+            if (chunk_size > FIND_MAX_CHUNK_SIZE) {
+                chunk_size = FIND_MAX_CHUNK_SIZE;
             }
         }
     }
