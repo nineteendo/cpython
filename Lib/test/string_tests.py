@@ -181,9 +181,11 @@ class BaseTest:
         if self.contains_bytes:
             self.checkequal(-1, 'hello', 'find', 42)
             self.checkequal(-1, 'hello', 'find', (42,))
+            self.checkequal(-1, 'hello', 'find', (42, 47))
         else:
             self.checkraises(TypeError, 'hello', 'find', 42)
             self.checkraises(TypeError, 'hello', 'find', (42,))
+            self.checkraises(TypeError, 'hello', 'find', (42, 47))
 
         self.checkequal(0, '', 'find', '')
         self.checkequal(-1, '', 'find', '', 1, 1)
@@ -267,9 +269,11 @@ class BaseTest:
         if self.contains_bytes:
             self.checkequal(-1, 'hello', 'rfind', 42)
             self.checkequal(-1, 'hello', 'rfind', (42,))
+            self.checkequal(-1, 'hello', 'rfind', (42, 47))
         else:
             self.checkraises(TypeError, 'hello', 'rfind', 42)
             self.checkraises(TypeError, 'hello', 'rfind', (42,))
+            self.checkraises(TypeError, 'hello', 'rfind', (42, 47))
 
         # For a variety of combinations,
         #    verify that str.rfind() matches __contains__
@@ -348,8 +352,12 @@ class BaseTest:
 
         if self.contains_bytes:
             self.checkraises(ValueError, 'hello', 'index', 42)
+            self.checkraises(ValueError, 'hello', 'index', (42,))
+            self.checkraises(ValueError, 'hello', 'index', (42, 47))
         else:
             self.checkraises(TypeError, 'hello', 'index', 42)
+            self.checkraises(TypeError, 'hello', 'index', (42,))
+            self.checkraises(TypeError, 'hello', 'index', (42, 47))
 
         # test tuple arguments (should be wrapper around find)
         self.checkequal(2, '__aa__bb__', 'index', ('aa', 'bb'))
@@ -379,8 +387,12 @@ class BaseTest:
 
         if self.contains_bytes:
             self.checkraises(ValueError, 'hello', 'rindex', 42)
+            self.checkraises(ValueError, 'hello', 'rindex', (42,))
+            self.checkraises(ValueError, 'hello', 'rindex', (42, 47))
         else:
             self.checkraises(TypeError, 'hello', 'rindex', 42)
+            self.checkraises(TypeError, 'hello', 'rindex', (42,))
+            self.checkraises(TypeError, 'hello', 'rindex', (42, 47))
 
         # test tuple arguments (should be wrapper around rfind)
         self.checkequal(6, '__aa__bb__', 'rindex', ('aa', 'bb'))
