@@ -221,12 +221,12 @@ class BaseTest:
 
         # test tuple arguments
         MIN = 32  # FIND_MIN_CHUNK_SIZE
-        self.checkequal(0, 'foo', 'find', ('foo',))
-        self.checkequal(-1, 'foo', 'find', ('bar',))
+        self.checkequal(-1, '__aa__bb__', 'find', ())
+        self.checkequal(2, '__aa__bb__', 'find', ('aa',))
+        self.checkequal(-1, '__aa__bb__', 'find', ('cc',))
         self.checkequal(2, '__aa__bb__', 'find', ('aa', 'bb'))
         self.checkequal(2, '__aa__bb__', 'find', ('bb', 'aa'))
         self.checkequal(-1, '__aa__bb__', 'find', ('cc', 'dd'))
-        self.checkequal(-1, '__aa__bb__', 'find', ())
         self.checkequal(6, '__aa__bb__', 'find', ('aa', 'bb'), 3)
         self.checkequal(-1, '__aa__bb__', 'find', ('aa', 'cc'), 3)
         self.checkequal(2, '__aa__bb__', 'find', ('aa', 'bb'), 0, 10)
@@ -302,12 +302,12 @@ class BaseTest:
 
         # test tuple arguments
         MIN = 32  # FIND_MIN_CHUNK_SIZE
-        self.checkequal(0, 'foo', 'rfind', ('foo',))
-        self.checkequal(-1, 'foo', 'rfind', ('bar',))
+        self.checkequal(-1, '__aa__bb__', 'rfind', ())
+        self.checkequal(6, '__aa__bb__', 'rfind', ('bb',))
+        self.checkequal(-1, '__aa__bb__', 'rfind', ('cc',))
         self.checkequal(6, '__aa__bb__', 'rfind', ('aa', 'bb'))
         self.checkequal(6, '__aa__bb__', 'rfind', ('bb', 'aa'))
         self.checkequal(-1, '__aa__bb__', 'rfind', ('cc', 'dd'))
-        self.checkequal(-1, '__aa__bb__', 'rfind', ())
         self.checkequal(-1, '__aa__bb__', 'rfind', ('aa', 'cc'), 3)
         self.checkequal(6, '__aa__bb__', 'rfind', ('aa', 'bb'), 0, 10)
         self.checkequal(-1, '__aa__bb__', 'rfind', ('aa', 'bb'), 7, 10)
