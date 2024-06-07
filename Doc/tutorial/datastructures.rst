@@ -493,12 +493,9 @@ Frozen sets are :term:`immutable` sets and can be used for constants. Double
 curly braces or the :func:`frozenset` function can be used to create them::
 
    >>> {{1, 2, 3}}
-   frozenset({1, 2, 3})
+   {{1, 2, 3}}
    >>> frozenset('foobar')
-   frozenset({'f', 'r', 'a', 'b', 'o'})
-
-For backward compatibility, frozen sets on output always use the :func:`frozenset`
-function.
+   {{'f', 'r', 'a', 'b', 'o'}}
 
 .. note::
    To create an empty frozen set you have to use ``frozenset()``, not
@@ -508,7 +505,7 @@ Like sets, comprehensions are also supported::
 
    >>> a = {{x for x in 'abracadabra' if x not in 'abc'}}
    >>> a
-   frozenset({'r', 'd'})
+   {{'r', 'd'}}
 
 .. _tut-dictionaries:
 
