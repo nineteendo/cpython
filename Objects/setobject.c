@@ -564,8 +564,8 @@ set_repr_lock_held(PySetObject *so)
         result = PyUnicode_FromFormat("{{%U}}", listrepr);
     else
         result = PyUnicode_FromFormat("%s({%U})",
-              Py_TYPE(so)->tp_name,
-              listrepr);
+                                      Py_TYPE(so)->tp_name,
+                                      listrepr);
     Py_DECREF(listrepr);
 done:
     Py_ReprLeave((PyObject*)so);
