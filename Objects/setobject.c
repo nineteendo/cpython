@@ -558,12 +558,14 @@ set_repr_lock_held(PySetObject *so)
         goto done;
     listrepr = tmp;
 
-    if (!PySet_CheckExact(so))
+    if (PySet_CheckExact(so))
+        result = PyUnicode_FromFormat("{%U}", listrepr);
+    else if (PyFrozenSet_CheckExact(so))
+        result = PyUnicode_FromFormat("{{%U}}", listrepr);
+    else
         result = PyUnicode_FromFormat("%s({%U})",
                                       Py_TYPE(so)->tp_name,
                                       listrepr);
-    else
-        result = PyUnicode_FromFormat("{%U}", listrepr);
     Py_DECREF(listrepr);
 done:
     Py_ReprLeave((PyObject*)so);
