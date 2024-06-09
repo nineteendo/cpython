@@ -9244,7 +9244,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
     ADJUST_INDICES(start, end, len1);
     if (direction > 0) {
         Py_ssize_t chunk_start = start;
-        for (; result == -1;) {
+        while (result == -1) {
             Py_ssize_t chunk_end;
             if (chunk_start > end - chunk_size + 1) { // Guard overflow
                 chunk_end = end;
@@ -9282,7 +9282,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
     }
     else {
         Py_ssize_t chunk_end = end;
-        for (; result == -1;) {
+        while (result == -1) {
             Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
             if (chunk_start < start) {
                 chunk_start = start;
