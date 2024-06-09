@@ -9066,6 +9066,7 @@ fast_find(const void *buf1, int kind1, Py_ssize_t len1,
 
     assert(kind2 <= kind1);
     assert(start >= 0);
+    assert(end >= start);
     assert(end <= len1);
     if (end - start < len2)
         return -1;
@@ -9169,6 +9170,7 @@ chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
     const void *buf2;
     Py_ssize_t len2;
 
+    assert(chunk_end <= end);
     kind2 = PyUnicode_KIND(s2);
     if (kind1 < kind2)
         return -1;
