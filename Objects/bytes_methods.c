@@ -583,7 +583,6 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     Py_ssize_t sub_len;
     Py_ssize_t res;
 
-    assert(chunk_end >= chunk_start);
     assert(chunk_end <= end);
     if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
         return -2;
@@ -647,9 +646,6 @@ find_first_internal(const char *str, Py_ssize_t len,
     result = -1;
     chunk_size = FIND_MIN_CHUNK_SIZE;
     ADJUST_INDICES(start, end, len);
-    if (end < start) {
-        return -1;
-    }
     if (direction > 0) {
         Py_ssize_t chunk_start = start;
         for (; result == -1;) {
@@ -690,7 +686,7 @@ find_first_internal(const char *str, Py_ssize_t len,
     }
     else {
         Py_ssize_t chunk_end = end;
-        for (; result == -1 && chunk_end >= start;) {
+        for (; result == -1;) {
             Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
             if (chunk_start < start) {
                 chunk_start = start;
@@ -714,6 +710,9 @@ find_first_internal(const char *str, Py_ssize_t len,
                 }
             }
             chunk_end -= chunk_size;
+            if (chunk_end >= start) {
+                break;
+            }
             chunk_size *= FIND_EXP_CHUNK_SIZE;
             if (chunk_size > FIND_MAX_CHUNK_SIZE) {
                 chunk_size = FIND_MAX_CHUNK_SIZE;

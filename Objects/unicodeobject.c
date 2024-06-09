@@ -9169,7 +9169,6 @@ chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
     const void *buf2;
     Py_ssize_t len2;
 
-    assert(chunk_end >= chunk_start);
     assert(chunk_end <= end);
     kind2 = PyUnicode_KIND(s2);
     if (kind1 < kind2)
@@ -9243,9 +9242,6 @@ any_find_first_slice(PyObject *str, const char *function_name,
     isascii1 = PyUnicode_IS_ASCII(str);
     len1 = PyUnicode_GET_LENGTH(str);
     ADJUST_INDICES(start, end, len1);
-    if (end < start) {
-        return -1;
-    }
     if (direction > 0) {
         Py_ssize_t chunk_start = start;
         for (; result == -1;) {
@@ -9286,7 +9282,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
     }
     else {
         Py_ssize_t chunk_end = end;
-        for (; result == -1 && chunk_end >= start;) {
+        for (; result == -1;) {
             Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
             if (chunk_start < start) {
                 chunk_start = start;
@@ -9310,6 +9306,9 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 }
             }
             chunk_end -= chunk_size;
+            if (chunk_end >= start) {
+                break;
+            }
             chunk_size *= FIND_EXP_CHUNK_SIZE;
             if (chunk_size > FIND_MAX_CHUNK_SIZE) {
                 chunk_size = FIND_MAX_CHUNK_SIZE;
