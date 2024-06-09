@@ -9306,7 +9306,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 }
             }
             chunk_end -= chunk_size;
-            if (chunk_end >= start) {
+            if (chunk_end < start) {
                 break;
             }
             chunk_size *= FIND_EXP_CHUNK_SIZE;
