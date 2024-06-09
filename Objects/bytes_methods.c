@@ -505,7 +505,6 @@ _Py_fast_find(const char *str, Py_ssize_t len,
     Py_ssize_t res;
 
     assert(start >= 0);
-    assert(end >= start);
     assert(end <= len);
     if (end - start < sub_len)
         res = -1;
@@ -584,6 +583,7 @@ _Py_chunk_find(const char *str, Py_ssize_t len,
     Py_ssize_t sub_len;
     Py_ssize_t res;
 
+    assert(chunk_end >= chunk_start);
     assert(chunk_end <= end);
     if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
         return -2;
@@ -647,6 +647,9 @@ find_first_internal(const char *str, Py_ssize_t len,
     result = -1;
     chunk_size = FIND_MIN_CHUNK_SIZE;
     ADJUST_INDICES(start, end, len);
+    if (end < start) {
+        return -1;
+    }
     if (direction > 0) {
         Py_ssize_t chunk_start = start;
         for (; result == -1;) {

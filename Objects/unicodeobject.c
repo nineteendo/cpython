@@ -9066,7 +9066,6 @@ fast_find(const void *buf1, int kind1, Py_ssize_t len1,
 
     assert(kind2 <= kind1);
     assert(start >= 0);
-    assert(end >= start);
     assert(end <= len1);
     if (end - start < len2)
         return -1;
@@ -9170,6 +9169,7 @@ chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
     const void *buf2;
     Py_ssize_t len2;
 
+    assert(chunk_end >= chunk_start);
     assert(chunk_end <= end);
     kind2 = PyUnicode_KIND(s2);
     if (kind1 < kind2)
@@ -9243,6 +9243,9 @@ any_find_first_slice(PyObject *str, const char *function_name,
     isascii1 = PyUnicode_IS_ASCII(str);
     len1 = PyUnicode_GET_LENGTH(str);
     ADJUST_INDICES(start, end, len1);
+    if (end < start) {
+        return -1;
+    }
     if (direction > 0) {
         Py_ssize_t chunk_start = start;
         for (; result == -1;) {
