@@ -9266,7 +9266,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
                     if (new_result == chunk_start) {
                         return chunk_start;
                     }
-                    chunk_end = new_result - 1;
+                    chunk_end = new_result - 1; // Only allow earlier match
                     result = new_result;
                 }
             }
@@ -9301,7 +9301,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
                     if (new_result == chunk_end) {
                         return chunk_end;
                     }
-                    chunk_start = new_result + 1;
+                    chunk_start = new_result + 1; // Only allow later match
                     result = new_result;
                 }
             }

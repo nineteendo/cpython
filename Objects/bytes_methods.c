@@ -670,7 +670,7 @@ find_first_internal(const char *str, Py_ssize_t len,
                     if (new_result == chunk_start) {
                         return chunk_start;
                     }
-                    chunk_end = new_result - 1;
+                    chunk_end = new_result - 1; // Only allow earlier match
                     result = new_result;
                 }
             }
@@ -705,7 +705,7 @@ find_first_internal(const char *str, Py_ssize_t len,
                     if (new_result == chunk_end) {
                         return chunk_end;
                     }
-                    chunk_start = new_result + 1;
+                    chunk_start = new_result + 1; // Only allow later match
                     result = new_result;
                 }
             }
