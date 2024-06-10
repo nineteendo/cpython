@@ -674,10 +674,10 @@ find_first_internal(const char *str, Py_ssize_t len,
                     result = new_result;
                 }
             }
-            if (chunk_start >= end - chunk_size) {
-                break; // Guard overflow, empty chunk already matched
+            if (chunk_end >= end) {
+                break; // Searched entire range (guard overflow)
             }
-            chunk_start += chunk_size;
+            chunk_start = chunk_end + 1;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
             if (chunk_size > FIND_MAX_CHUNK_SIZE) {
                 chunk_size = FIND_MAX_CHUNK_SIZE;
@@ -709,10 +709,10 @@ find_first_internal(const char *str, Py_ssize_t len,
                     result = new_result;
                 }
             }
-            chunk_end -= chunk_size;
-            if (chunk_end <= start) {
-                break; // Empty chunk already matched
+            if (chunk_start <= start) {
+                break; // Checked everything
             }
+            chunk_end = chunk_start - 1;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
             if (chunk_size > FIND_MAX_CHUNK_SIZE) {
                 chunk_size = FIND_MAX_CHUNK_SIZE;
