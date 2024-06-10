@@ -710,7 +710,7 @@ find_first_internal(const char *str, Py_ssize_t len,
                 }
             }
             if (chunk_start <= start) {
-                break; // Checked everything
+                break; // Searched entire range
             }
             chunk_end = chunk_start - 1;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
