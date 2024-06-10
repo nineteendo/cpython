@@ -650,11 +650,11 @@ find_first_internal(const char *str, Py_ssize_t len,
         Py_ssize_t chunk_start = start;
         while (result == -1) {
             Py_ssize_t chunk_end;
-            if (chunk_start > end - chunk_size + 1) { // Guard overflow
+            if (chunk_start >= end - chunk_size) { // Guard overflow
                 chunk_end = end;
             }
             else {
-                chunk_end = chunk_start - 1 + chunk_size;
+                chunk_end = chunk_start + chunk_size - 1;
             }
             for (Py_ssize_t i = 0; i < tuple_len; i++) {
                 PyObject *subseq;
@@ -674,8 +674,8 @@ find_first_internal(const char *str, Py_ssize_t len,
                     result = new_result;
                 }
             }
-            if (chunk_start > end - chunk_size) {
-                break; // Guard overflow
+            if (chunk_start >= end - chunk_size) {
+                break; // Guard overflow, empty chunk already matched
             }
             chunk_start += chunk_size;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
@@ -688,7 +688,7 @@ find_first_internal(const char *str, Py_ssize_t len,
         Py_ssize_t chunk_end = end;
         while (result == -1) {
             Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
-            if (chunk_start < start) {
+            if (chunk_start - 1 <= start) {
                 chunk_start = start;
             }
             for (Py_ssize_t i = 0; i < tuple_len; i++) {
@@ -710,8 +710,8 @@ find_first_internal(const char *str, Py_ssize_t len,
                 }
             }
             chunk_end -= chunk_size;
-            if (chunk_end < start) {
-                break;
+            if (chunk_end <= start) {
+                break; // Empty chunk already matched
             }
             chunk_size *= FIND_EXP_CHUNK_SIZE;
             if (chunk_size > FIND_MAX_CHUNK_SIZE) {
