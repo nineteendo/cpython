@@ -3196,7 +3196,7 @@ dict_repr_lock_held(PyObject *self)
     Py_ssize_t i;
     PyObject *key = NULL, *value = NULL;
     _PyUnicodeWriter writer;
-    int first;
+    int first, ending_frozenset = 0;
 
     ASSERT_DICT_LOCKED(mp);
 
@@ -3230,7 +3230,11 @@ dict_repr_lock_held(PyObject *self)
         Py_INCREF(key);
         Py_INCREF(value);
 
-        if (!first) {
+        if (first) {
+            if (PyFrozenSet_CheckExact(key))
+                if (_PyUnicodeWriter_WriteChar(&writer, ' ') < 0)
+                    goto error;
+        } else {
             if (_PyUnicodeWriter_WriteASCIIString(&writer, ", ", 2) < 0)
                 goto error;
         }
@@ -3254,12 +3258,15 @@ dict_repr_lock_held(PyObject *self)
         Py_DECREF(s);
         if (res < 0)
             goto error;
+        ending_frozenset = PyFrozenSet_CheckExact(value);
 
         Py_CLEAR(key);
         Py_CLEAR(value);
     }
 
     writer.overallocate = 0;
+    if (ending_frozenset && _PyUnicodeWriter_WriteChar(&writer, ' ') < 0)
+        goto error;
     if (_PyUnicodeWriter_WriteChar(&writer, '}') < 0)
         goto error;
 

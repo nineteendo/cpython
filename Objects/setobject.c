@@ -549,7 +549,6 @@ set_repr_lock_held(PySetObject *so)
 
     /* repr(keys)[1:-1] */
     listrepr = PyObject_Repr(keys);
-    Py_DECREF(keys);
     if (listrepr == NULL)
         goto done;
     tmp = PyUnicode_Substring(listrepr, 1, PyUnicode_GET_LENGTH(listrepr)-1);
@@ -558,14 +557,19 @@ set_repr_lock_held(PySetObject *so)
         goto done;
     listrepr = tmp;
 
-    if (PySet_CheckExact(so))
-        result = PyUnicode_FromFormat("{%U}", listrepr);
-    else if (PyFrozenSet_CheckExact(so))
+    if (PySet_CheckExact(so)) {
+        result = PyUnicode_FromFormat(
+            "{%s%U%s}",
+            PyFrozenSet_CheckExact(PyList_GET_ITEM(keys, 0)) ? " " : "",
+            listrepr,
+            PyFrozenSet_CheckExact(PyList_GET_ITEM(keys, PyList_GET_SIZE(keys) - 1)) ? " " : "");
+    } else if (PyFrozenSet_CheckExact(so))
         result = PyUnicode_FromFormat("{{%U}}", listrepr);
     else
         result = PyUnicode_FromFormat("%s({%U})",
                                       Py_TYPE(so)->tp_name,
                                       listrepr);
+    Py_DECREF(keys);
     Py_DECREF(listrepr);
 done:
     Py_ReprLeave((PyObject*)so);

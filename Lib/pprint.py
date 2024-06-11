@@ -266,6 +266,13 @@ class PrettyPrinter:
             endchar = '})'
             indent += len(typ.__name__) + 1
         object = sorted(object, key=_safe_key)
+        if object:
+            if type(object[0]) is frozenset:
+                stream.write(' ')
+                indent += 1
+            if type(object[-1]) is frozenset:
+                endchar = ' ' + endchar
+                allowance += 1
         self._format_items(object, stream, indent, allowance + len(endchar),
                            context, level)
         stream.write(endchar)
@@ -402,15 +409,21 @@ class PrettyPrinter:
         delimnl = ',\n' + ' ' * indent
         last_index = len(items) - 1
         for i, (key, ent) in enumerate(items):
+            if i == 0 and type(key) is frozenset:
+                write(' ')
+                indent += 1
+                delimnl += ' '
             last = i == last_index
             rep = self._repr(key, context, level)
             write(rep)
             write(': ')
             self._format(ent, stream, indent + len(rep) + 2,
-                         allowance if last else 1,
+                         allowance + (type(ent) is frozenset) if last else 1,
                          context, level)
             if not last:
                 write(delimnl)
+            elif type(ent) is frozenset:
+                write(' ')
 
     def _format_namespace_items(self, items, stream, indent, allowance, context, level):
         write = stream.write
@@ -601,11 +614,16 @@ class PrettyPrinter:
                 items = sorted(object.items(), key=_safe_tuple)
             else:
                 items = object.items()
-            for k, v in items:
+            last = len(items) - 1
+            for i, (k, v) in enumerate(items):
                 krepr, kreadable, krecur = self.format(
                     k, context, maxlevels, level)
-                vrepr, vreadable, vrecur = self.format(
+                vrepr, vreadable, vrecur = self.format( 
                     v, context, maxlevels, level)
+                if i == 0 and type(k) is frozenset:
+                    krepr = " " + krepr
+                if i == last and type(v) is frozenset:
+                    vrepr += " "
                 append("%s: %s" % (krepr, vrepr))
                 readable = readable and kreadable and vreadable
                 if krecur or vrecur:
