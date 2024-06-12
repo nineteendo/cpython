@@ -502,8 +502,8 @@ curly braces or the :func:`frozenset` function can be used to create them::
    ``{{}}``; the latter is reserved for an empty frozen dictionary.
 
 .. note::
-   To use a frozen set as the first key of a set or in a set comprehension,
-   you need to add whitespace::
+   To use a frozen set as the first element of a set or in a set
+   comprehension, you need to add whitespace::
 
       >>> { {{3}}, {{2}}, {{1}} }
       { {{3}}, {{2}}, {{1}} }
@@ -571,10 +571,13 @@ Here is a small example using a dictionary::
    False
 
 .. note::
-   To use a frozen set as the first key, you need to add whitespace::
+   To use a frozen set as the first key or as the key in a comprehension,
+   you need to add whitespace::
 
       >>> { {{1}}: 1, {{2}}: 2, {{3}}: 3 }
       { {{1}}: 1, {{2}}: 2, {{3}}: 3 }
+      >>> { {{c}}: c for c in 'abc' }
+      { {{'a'}}: 'a', {{'b'}}: 'b', {{'c'}}: 'c' }
 
 The :func:`dict` constructor builds dictionaries directly from sequences of
 key-value pairs::
