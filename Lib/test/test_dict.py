@@ -586,7 +586,7 @@ class DictTest(unittest.TestCase):
         self.assertEqual(repr(d), '{1: {...}}')
 
         self.assertEqual(repr({1: {{1}}}),       '{1: {{1}}}')
-        self.assertEqual(repr({ {{1}}: 1}),      '{ {{1}}: 1}')
+        self.assertEqual(repr({ {{1}}: 1 }),     '{ {{1}}: 1 }')
         self.assertEqual(repr({ {{1}}: {{1}} }), '{ {{1}}: {{1}} }')
 
         class Exc(Exception): pass

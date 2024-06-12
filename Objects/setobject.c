@@ -558,15 +558,12 @@ set_repr_lock_held(PySetObject *so)
     listrepr = tmp;
 
     if (PySet_CheckExact(so)) {
-        int starting_frozenset = PyFrozenSet_CheckExact(
-            PyList_GET_ITEM(keys, 0));
-        int ending_frozenset = PyFrozenSet_CheckExact(
-            PyList_GET_ITEM(keys, PyList_GET_SIZE(keys) - 1));
-        result = PyUnicode_FromFormat(
-            "{%s%U%s}",
-            starting_frozenset ? " " : "",
-            listrepr,
-            starting_frozenset && ending_frozenset ? " " : "");
+        if (PyFrozenSet_CheckExact(PyList_GET_ITEM(keys, 0))) {
+            result = PyUnicode_FromFormat("{ %U }", listrepr);
+        }
+        else {
+            result = PyUnicode_FromFormat("{%U}", listrepr);
+        }
     } else if (PyFrozenSet_CheckExact(so))
         result = PyUnicode_FromFormat("{{%U}}", listrepr);
     else
