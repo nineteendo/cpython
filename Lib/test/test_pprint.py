@@ -704,6 +704,50 @@ frozenset2({0,
         # Everything is multiline, unordered:
         check(
             pprint.pformat(
+                {
+                    {{
+                        "xyz very-very long string",
+                        "qwerty is also absurdly long",
+                    }},
+                    {{
+                        "abcd is even longer that before",
+                        "spam is not so long",
+                    }},
+                },
+                width=40
+            ),
+            [
+                """
+                { {{'abcd is even longer that before',
+                    'spam is not so long'}},
+                  {{'qwerty is also absurdly long',
+                    'xyz very-very long string'}} }
+                """,
+
+                """
+                { {{'abcd is even longer that before',
+                    'spam is not so long'}},
+                  {{'xyz very-very long string',
+                    'qwerty is also absurdly long'}} }
+                """,
+
+                """
+                { {{'qwerty is also absurdly long',
+                    'xyz very-very long string'}},
+                  {{'abcd is even longer that before',
+                    'spam is not so long'}} }
+                """,
+
+                """
+                { {{'qwerty is also absurdly long',
+                    'xyz very-very long string'}},
+                  {{'spam is not so long',
+                    'abcd is even longer that before'}} }
+                """,
+            ],
+        )
+        check(
+            pprint.pformat(
                 {{
                     {{
                         "xyz very-very long string",
@@ -741,7 +785,7 @@ frozenset2({0,
                 """
                 {{{{'qwerty is also absurdly long',
                     'xyz very-very long string'}},
-                {{{{'spam is not so long',
+                  {{'spam is not so long',
                     'abcd is even longer that before'}}}}
                 """,
             ],
