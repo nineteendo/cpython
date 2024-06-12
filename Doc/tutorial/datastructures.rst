@@ -504,6 +504,7 @@ curly braces or the :func:`frozenset` function can be used to create them::
 .. note::
    To use a frozen set as the first key of a set or in a set comprehension,
    you need to add whitespace::
+
       >>> { {{3}}, {{2}}, {{1}} }
       { {{3}}, {{2}}, {{1}} }
       >>> { {{c}} for c in 'cba' }
@@ -571,6 +572,7 @@ Here is a small example using a dictionary::
 
 .. note::
    To use a frozen set as the first key, you need to add whitespace::
+
       >>> { {{1}}: 1, {{2}}: 2, {{3}}: 3 }
       { {{1}}: 1, {{2}}: 2, {{3}}: 3 }
 
