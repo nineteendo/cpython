@@ -618,7 +618,7 @@ class PrettyPrinter:
             for i, (k, v) in enumerate(items):
                 krepr, kreadable, krecur = self.format(
                     k, context, maxlevels, level)
-                vrepr, vreadable, vrecur = self.format( 
+                vrepr, vreadable, vrecur = self.format(
                     v, context, maxlevels, level)
                 if i == 0 and type(k) is frozenset:
                     krepr = " " + krepr
