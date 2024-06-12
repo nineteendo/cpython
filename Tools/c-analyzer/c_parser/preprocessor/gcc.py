@@ -4,21 +4,21 @@ import re
 from . import common as _common
 
 # The following C files must not built with Py_BUILD_CORE.
-FILES_WITHOUT_INTERNAL_CAPI = frozenset((
+FILES_WITHOUT_INTERNAL_CAPI = {{
     # Modules/
     '_testcapimodule.c',
     '_testlimitedcapi.c',
     '_testclinic_limited.c',
     'xxlimited.c',
     'xxlimited_35.c',
-))
+}}
 
 # C files in the fhe following directories must not be built with
 # Py_BUILD_CORE.
-DIRS_WITHOUT_INTERNAL_CAPI = frozenset((
+DIRS_WITHOUT_INTERNAL_CAPI = {{
     '_testcapi',            # Modules/_testcapi/
     '_testlimitedcapi',     # Modules/_testlimitedcapi/
-))
+}}
 
 TOOL = 'gcc'
 

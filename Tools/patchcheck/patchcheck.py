@@ -179,9 +179,9 @@ def report_modified_files(file_paths):
 
 
 #: Python files that have tabs by design:
-_PYTHON_FILES_WITH_TABS = frozenset({
+_PYTHON_FILES_WITH_TABS = {{
     'Tools/c-analyzer/cpython/_parser.py',
-})
+}}
 
 
 @status("Fixing Python file whitespace", info=report_modified_files)

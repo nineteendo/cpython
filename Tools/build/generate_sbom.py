@@ -29,7 +29,7 @@ ALLOWED_LICENSE_EXPRESSIONS = {
 }
 
 # Properties which are required for our purposes.
-REQUIRED_PROPERTIES_PACKAGE = frozenset([
+REQUIRED_PROPERTIES_PACKAGE = {{
     "SPDXID",
     "name",
     "versionInfo",
@@ -38,7 +38,7 @@ REQUIRED_PROPERTIES_PACKAGE = frozenset([
     "licenseConcluded",
     "externalRefs",
     "primaryPackagePurpose",
-])
+}}
 
 
 class PackageFiles(typing.NamedTuple):
