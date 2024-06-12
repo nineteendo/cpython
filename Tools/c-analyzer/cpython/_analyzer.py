@@ -95,7 +95,7 @@ _KWLIST_VARIANTS = [
     ('Modules/socketmodule.c', 'kwnames'),
 ]
 
-KINDS = frozenset(KIND.TYPES) | {{KIND.VARIABLE}}
+KINDS = frozenset((*KIND.TYPES, KIND.VARIABLE))
 
 
 def read_known():

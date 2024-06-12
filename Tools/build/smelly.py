@@ -17,9 +17,9 @@ if sys.platform == 'darwin':
 ALLOWED_STATIC_PREFIXES = ('mi_', '_mi_')
 
 # "Legacy": some old symbols are prefixed by "PY_".
-EXCEPTIONS = {{
+EXCEPTIONS = frozenset({
     'PY_TIMEOUT_MAX',
-}}
+})
 
 IGNORED_EXTENSION = "_ctypes_test"
 # Ignore constructor and destructor functions

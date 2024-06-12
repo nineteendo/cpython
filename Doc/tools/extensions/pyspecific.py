@@ -115,7 +115,7 @@ class Availability(SphinxDirective):
     final_argument_whitespace = True
 
     # known platform, libc, and threading implementations
-    known_platforms = {{
+    known_platforms = frozenset({
         "AIX", "Android", "BSD", "DragonFlyBSD", "Emscripten", "FreeBSD",
         "GNU/kFreeBSD", "Linux", "NetBSD", "OpenBSD", "POSIX", "Solaris",
         "Unix", "VxWorks", "WASI", "Windows", "macOS", "iOS",
@@ -123,7 +123,7 @@ class Availability(SphinxDirective):
         "BSD libc", "glibc", "musl",
         # POSIX platforms with pthreads
         "pthreads",
-    }}
+    })
 
     def run(self):
         availability_ref = ':ref:`Availability <availability>`: '
