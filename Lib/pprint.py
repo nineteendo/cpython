@@ -270,9 +270,9 @@ class PrettyPrinter:
             if type(object[0]) is frozenset:
                 stream.write(' ')
                 indent += 1
-            if type(object[-1]) is frozenset:
-                endchar = ' ' + endchar
-                allowance += 1
+                if type(object[-1]) is frozenset:
+                    endchar = ' ' + endchar
+                    allowance += 1
         self._format_items(object, stream, indent, allowance + len(endchar),
                            context, level)
         stream.write(endchar)
@@ -408,21 +408,24 @@ class PrettyPrinter:
         indent += self._indent_per_level
         delimnl = ',\n' + ' ' * indent
         last_index = len(items) - 1
+        starting_frozenset = False
         for i, (key, ent) in enumerate(items):
             if i == 0 and type(key) is frozenset:
                 write(' ')
                 indent += 1
                 delimnl += ' '
+                starting_frozenset = True
             last = i == last_index
+            ending_frozenset = last and starting_frozenset and type(ent) is frozenset
             rep = self._repr(key, context, level)
             write(rep)
             write(': ')
             self._format(ent, stream, indent + len(rep) + 2,
-                         allowance + (type(ent) is frozenset) if last else 1,
+                         allowance + ending_frozenset if last else 1,
                          context, level)
             if not last:
                 write(delimnl)
-            elif type(ent) is frozenset:
+            elif ending_frozenset:
                 write(' ')
 
     def _format_namespace_items(self, items, stream, indent, allowance, context, level):
@@ -615,6 +618,7 @@ class PrettyPrinter:
             else:
                 items = object.items()
             last = len(items) - 1
+            starting_frozenset = False
             for i, (k, v) in enumerate(items):
                 krepr, kreadable, krecur = self.format(
                     k, context, maxlevels, level)
@@ -622,7 +626,8 @@ class PrettyPrinter:
                     v, context, maxlevels, level)
                 if i == 0 and type(k) is frozenset:
                     krepr = " " + krepr
-                if i == last and type(v) is frozenset:
+                    starting_frozenset = True
+                if i == last and starting_frozenset and type(v) is frozenset:
                     vrepr += " "
                 append("%s: %s" % (krepr, vrepr))
                 readable = readable and kreadable and vreadable
