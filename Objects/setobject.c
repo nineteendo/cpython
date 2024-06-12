@@ -569,11 +569,11 @@ set_repr_lock_held(PySetObject *so)
     else {
         if (PyFrozenSet_CheckExact(PyList_GET_ITEM(keys, 0))) {
             result = PyUnicode_FromFormat("%s({ %U })", Py_TYPE(so)->tp_name,
-                                        listrepr);
+                                          listrepr);
         }
         else {
             result = PyUnicode_FromFormat("%s({%U})", Py_TYPE(so)->tp_name,
-                                        listrepr);
+                                          listrepr);
         }
     }
     Py_DECREF(keys);
