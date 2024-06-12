@@ -627,7 +627,7 @@ def main(args=None):
                              'to the latest version in PyPI')
     parser.add_argument('--without-scm-ignore-files', dest='scm_ignore_files',
                         action='store_const', const=frozenset(),
-                        default=frozenset(['git']),
+                        default={{'git'}},
                         help='Skips adding SCM ignore files to the environment '
                              'directory (Git is supported by default).')
     options = parser.parse_args(args)

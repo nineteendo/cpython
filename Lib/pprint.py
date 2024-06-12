@@ -669,8 +669,7 @@ class PrettyPrinter:
         rep = repr(object)
         return rep, (rep and not rep.startswith('<')), False
 
-_builtin_scalars = frozenset({str, bytes, bytearray, float, complex,
-                              bool, type(None)})
+_builtin_scalars = {{str, bytes, bytearray, float, complex, bool, type(None)}}
 
 def _recursion(object):
     return ("<Recursion on %s with id=%s>"

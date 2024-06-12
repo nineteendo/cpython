@@ -110,10 +110,10 @@ class ReprTests(unittest.TestCase):
 
         # Frozensets give up after 6 as well
         eq(r(frozenset([])), "frozenset()")
-        eq(r(frozenset([1])), "frozenset({1})")
-        eq(r(frozenset([1, 2, 3])), "frozenset({1, 2, 3})")
-        eq(r(frozenset([1, 2, 3, 4, 5, 6])), "frozenset({1, 2, 3, 4, 5, 6})")
-        eq(r(frozenset([1, 2, 3, 4, 5, 6, 7])), "frozenset({1, 2, 3, 4, 5, 6, ...})")
+        eq(r(frozenset([1])), "{{1}}")
+        eq(r(frozenset([1, 2, 3])), "{{1, 2, 3}}")
+        eq(r(frozenset([1, 2, 3, 4, 5, 6])), "{{1, 2, 3, 4, 5, 6}}")
+        eq(r(frozenset([1, 2, 3, 4, 5, 6, 7])), "{{1, 2, 3, 4, 5, 6, ...}}")
 
         # collections.deque after 6
         eq(r(deque([1, 2, 3, 4, 5, 6, 7])), "deque([1, 2, 3, 4, 5, 6, ...])")
@@ -142,12 +142,12 @@ class ReprTests(unittest.TestCase):
         eq(r({1, 2, 3, 4, 5, 6}), "{1, 2, 3, 4, 5, 6}")
         eq(r({1, 2, 3, 4, 5, 6, 7}), "{1, 2, 3, 4, 5, 6, ...}")
 
-    def test_frozenset(self):
+    def test_frozenset_literal(self):
         eq = self.assertEqual
-        eq(r(frozenset({1})), "frozenset({1})")
-        eq(r(frozenset({1, 2, 3})), "frozenset({1, 2, 3})")
-        eq(r(frozenset({1, 2, 3, 4, 5, 6})), "frozenset({1, 2, 3, 4, 5, 6})")
-        eq(r(frozenset({1, 2, 3, 4, 5, 6, 7})), "frozenset({1, 2, 3, 4, 5, 6, ...})")
+        eq(r({{1}}), "{{1}}")
+        eq(r({{1, 2, 3}}), "{{1, 2, 3}}")
+        eq(r({{1, 2, 3, 4, 5, 6}}), "{{1, 2, 3, 4, 5, 6}}")
+        eq(r({{1, 2, 3, 4, 5, 6, 7}}), "{{1, 2, 3, 4, 5, 6, ...}}")
 
     def test_numbers(self):
         eq = self.assertEqual
@@ -378,7 +378,7 @@ class ReprTests(unittest.TestCase):
                 },
                 'tests': (
                     (dict(indent=None), '''\
-                        {1: 'two', b'three': [(4.5, 6.7), [{8, 9}, frozenset({10, 11})]]}'''),
+                        {1: 'two', b'three': [(4.5, 6.7), [{8, 9}, {{10, 11}}]]}'''),
                     (dict(indent=False), '''\
                         {
                         1: 'two',
@@ -392,10 +392,10 @@ class ReprTests(unittest.TestCase):
                         8,
                         9,
                         },
-                        frozenset({
+                        {{
                         10,
                         11,
-                        }),
+                        }},
                         ],
                         ],
                         }'''),
@@ -412,10 +412,10 @@ class ReprTests(unittest.TestCase):
                             8,
                             9,
                            },
-                           frozenset({
+                           {{
                             10,
                             11,
-                           }),
+                           }},
                           ],
                          ],
                         }'''),
@@ -432,10 +432,10 @@ class ReprTests(unittest.TestCase):
                         8,
                         9,
                         },
-                        frozenset({
+                        {{
                         10,
                         11,
-                        }),
+                        }},
                         ],
                         ],
                         }'''),
@@ -452,10 +452,10 @@ class ReprTests(unittest.TestCase):
                             8,
                             9,
                            },
-                           frozenset({
+                           {{
                             10,
                             11,
-                           }),
+                           }},
                           ],
                          ],
                         }'''),
@@ -472,10 +472,10 @@ class ReprTests(unittest.TestCase):
                                         8,
                                         9,
                                     },
-                                    frozenset({
+                                    {{
                                         10,
                                         11,
-                                    }),
+                                    }},
                                 ],
                             ],
                         }'''),
@@ -500,10 +500,10 @@ class ReprTests(unittest.TestCase):
                         8,
                         9,
                         },
-                        frozenset({
+                        {{
                         10,
                         11,
-                        }),
+                        }},
                         ],
                         ],
                         }'''),
@@ -520,10 +520,10 @@ class ReprTests(unittest.TestCase):
                         -->-->-->-->8,
                         -->-->-->-->9,
                         -->-->-->},
-                        -->-->-->frozenset({
+                        -->-->-->{{
                         -->-->-->-->10,
                         -->-->-->-->11,
-                        -->-->-->}),
+                        -->-->-->}},
                         -->-->],
                         -->],
                         }'''),
@@ -540,10 +540,10 @@ class ReprTests(unittest.TestCase):
                         ................8,
                         ................9,
                         ............},
-                        ............frozenset({
+                        ............{{
                         ................10,
                         ................11,
-                        ............}),
+                        ............}},
                         ........],
                         ....],
                         }'''),

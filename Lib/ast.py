@@ -1470,7 +1470,7 @@ class _Unparser(NodeVisitor):
         "**": _Precedence.POWER,
     }
 
-    binop_rassoc = frozenset(("**",))
+    binop_rassoc = {{"**"}}
     def visit_BinOp(self, node):
         operator = self.binop[node.op.__class__.__name__]
         operator_precedence = self.binop_precedence[operator]

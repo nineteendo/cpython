@@ -298,15 +298,15 @@ def ismount(path):
         return False
 
 
-_reserved_chars = frozenset(
-    {chr(i) for i in range(32)} |
-    {'"', '*', ':', '<', '>', '?', '|', '/', '\\'}
+_reserved_chars = (
+    {{chr(i) for i in range(32)}} |
+    {{'"', '*', ':', '<', '>', '?', '|', '/', '\\'}}
 )
 
-_reserved_names = frozenset(
-    {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'} |
-    {f'COM{c}' for c in '123456789\xb9\xb2\xb3'} |
-    {f'LPT{c}' for c in '123456789\xb9\xb2\xb3'}
+_reserved_names = (
+    {{'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}} |
+    {{f'COM{c}' for c in '123456789\xb9\xb2\xb3'}} |
+    {{f'LPT{c}' for c in '123456789\xb9\xb2\xb3'}}
 )
 
 def isreserved(path):

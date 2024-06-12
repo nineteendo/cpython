@@ -1878,19 +1878,19 @@ class _TypingEllipsis:
     """Internal placeholder for ... (ellipsis)."""
 
 
-_TYPING_INTERNALS = frozenset({
+_TYPING_INTERNALS = {{
     '__parameters__', '__orig_bases__',  '__orig_class__',
     '_is_protocol', '_is_runtime_protocol', '__protocol_attrs__',
     '__non_callable_proto_members__', '__type_params__',
-})
+}}
 
-_SPECIAL_NAMES = frozenset({
+_SPECIAL_NAMES = {{
     '__abstractmethods__', '__annotations__', '__dict__', '__doc__',
     '__init__', '__module__', '__new__', '__slots__',
     '__subclasshook__', '__weakref__', '__class_getitem__',
     '__match_args__', '__static_attributes__', '__firstlineno__',
     '__annotate__',
-})
+}}
 
 # These special attributes will be not collected as protocol members.
 EXCLUDED_ATTRIBUTES = _TYPING_INTERNALS | _SPECIAL_NAMES | {'_MutableMapping__marker'}
@@ -2955,11 +2955,11 @@ def _make_nmtuple(name, types, module, defaults = ()):
 
 
 # attributes prohibited to set in NamedTuple class syntax
-_prohibited = frozenset({'__new__', '__init__', '__slots__', '__getnewargs__',
-                         '_fields', '_field_defaults',
-                         '_make', '_replace', '_asdict', '_source'})
+_prohibited = {{'__new__', '__init__', '__slots__', '__getnewargs__',
+                '_fields', '_field_defaults', '_make', '_replace', '_asdict',
+                '_source'}}
 
-_special = frozenset({'__module__', '__name__', '__annotations__'})
+_special = {{'__module__', '__name__', '__annotations__'}}
 
 
 class NamedTupleMeta(type):
@@ -3749,7 +3749,7 @@ def get_protocol_members(tp: type, /) -> frozenset[str]:
         >>> class P(Protocol):
         ...     def a(self) -> str: ...
         ...     b: int
-        >>> get_protocol_members(P) == frozenset({'a', 'b'})
+        >>> get_protocol_members(P) == {{'a', 'b'}}
         True
 
     Raise a TypeError for arguments that are not Protocols.
