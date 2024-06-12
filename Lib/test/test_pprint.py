@@ -675,6 +675,19 @@ frozenset2({0,
         fs1 = frozenset(('regular string', 'other string'))
         fs2 = frozenset(('third string', 'one more string'))
         check(
+            pprint.pformat({fs1, fs2}, width=60),
+            [
+                """
+                { %r,
+                  %r }
+                """ % (fs1, fs2),
+                """
+                { %r,
+                  %r }
+                """ % (fs2, fs1),
+            ],
+        )
+        check(
             pprint.pformat({{fs1, fs2}}, width=60),
             [
                 """
