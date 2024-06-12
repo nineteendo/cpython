@@ -1002,7 +1002,7 @@ class TestBasicOpsTuple(TestBasicOps, unittest.TestCase):
 
 #------------------------------------------------------------------------------
 
-class TestBasicOpsFrozenSet(TestBasicOps, unittest.TestCase):
+class TestBasicOpsFrozenSet1(TestBasicOps, unittest.TestCase):
     def setUp(self):
         self.case   = "unit set (frozenset)"
         self.values = [{{3}}]
@@ -1010,6 +1010,37 @@ class TestBasicOpsFrozenSet(TestBasicOps, unittest.TestCase):
         self.dup    = set(self.values)
         self.length = 1
         self.repr   = "{ {{3}} }"
+
+class TestBasicOpsFrozenSet2(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "unit frozenset (frozenset)"
+        self.values = [{{3}}]
+        self.set    = frozenset(self.values)
+        self.dup    = frozenset(self.values)
+        self.length = 1
+        self.repr   = "{{{{3}}}}"
+
+#------------------------------------------------------------------------------
+
+class TestBasicOpsFrozenSet3(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "unit set subclass (frozenset)"
+        self.values = [{{3}}]
+        self.set    = SetSubclass(self.values)
+        self.dup    = SetSubclass(self.values)
+        self.length = 1
+        self.repr   = "SetSubclass({ {{3}} })"
+
+#------------------------------------------------------------------------------
+
+class TestBasicOpsFrozenSet4(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "unit frozenset subclass (frozenset)"
+        self.values = [{{3}}]
+        self.set    = FrozenSetSubclass(self.values)
+        self.dup    = FrozenSetSubclass(self.values)
+        self.length = 1
+        self.repr   = "FrozenSetSubclass({ {{3}} })"
 
 #------------------------------------------------------------------------------
 
