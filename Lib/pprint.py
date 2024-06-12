@@ -282,6 +282,7 @@ class PrettyPrinter:
             stream.write(repr(object))
             return
         typ = object.__class__
+        object = sorted(object, key=_safe_key)
         if typ is frozenset:
             stream.write('{{')
             endchar = '}}'
@@ -289,7 +290,11 @@ class PrettyPrinter:
             stream.write(typ.__name__ + '({')
             endchar = '})'
             indent += len(typ.__name__)
-        object = sorted(object, key=_safe_key)
+            if object and type(object[0]) is frozenset:
+                stream.write(' ')
+                endchar = ' ' + endchar
+                indent += 1
+                allowance += 1
         self._format_items(object, stream, indent + 1, allowance + len(endchar),
                            context, level)
         stream.write(endchar)
