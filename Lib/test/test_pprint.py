@@ -658,7 +658,7 @@ frozenset2({0,
         fs2 = frozenset(('one', 'two'))
         data = {fs2: frozenset((fs0, fs1))}
         self.assertEqual(pprint.pformat(data),
-                         "{%r: {{%r, %r}}}" % (fs2, fs0, fs1))
+                         "{ %r: {{%r, %r}} }" % (fs2, fs0, fs1))
         self.assertEqual(pprint.pformat(data), repr(data))
 
         # Single-line, unordered:
