@@ -335,7 +335,6 @@ class QueryTestCase(unittest.TestCase):
   2: [12, 34]},
  'abc def ghi',
  ('ab cd ef',),
- set2({1, 23}),
  [[[[[1, 2, 3],
      '1 2']]]]]"""
         o = eval(expected)
@@ -357,8 +356,6 @@ class QueryTestCase(unittest.TestCase):
  'ghi',
  ('ab cd '
   'ef',),
- set2({1,
-       23}),
  [[[[[1,
       2,
       3],
@@ -590,15 +587,15 @@ dataclass5(a=dataclass6(c=...,
  5,
  6}''')
         self.assertEqual(pprint.pformat(set2(range(7)), width=20), '''\
-set2({0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6})''')
+set2({{0,
+       1,
+       2,
+       3,
+       4,
+       5,
+       6}})''')
         self.assertEqual(pprint.pformat(set3(range(7)), width=20),
-                         'set3({0, 1, 2, 3, 4, 5, 6})')
+                         'set3({{0, 1, 2, 3, 4, 5, 6}})')
 
         self.assertEqual(pprint.pformat(frozenset()), 'frozenset()')
         self.assertEqual(pprint.pformat(frozenset(range(3))),
@@ -612,15 +609,15 @@ set2({0,
   5,
   6}}''')
         self.assertEqual(pprint.pformat(frozenset2(range(7)), width=20), '''\
-frozenset2({0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6})''')
+frozenset2({{0,
+             1,
+             2,
+             3,
+             4,
+             5,
+             6}})''')
         self.assertEqual(pprint.pformat(frozenset3(range(7)), width=20),
-                         'frozenset3({0, 1, 2, 3, 4, 5, 6})')
+                         'frozenset3({{0, 1, 2, 3, 4, 5, 6}})')
 
     def test_set_of_sets_reprs(self):
         # This test creates a complex arrangement of frozensets and

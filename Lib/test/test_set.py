@@ -321,7 +321,7 @@ class TestJointOps:
             self.assertEqual(repr(s), '{{frozenset(...)}}')
         else:
             name = repr(s).partition('(')[0]    # strip class name
-            self.assertEqual(repr(s), '%s({%s(...)})' % (name, name))
+            self.assertEqual(repr(s), '%s({{%s(...)}})' % (name, name))
 
     def test_do_not_rehash_dict_keys(self):
         n = 10
@@ -1029,7 +1029,7 @@ class TestBasicOpsFrozenSet3(TestBasicOps, unittest.TestCase):
         self.set    = SetSubclass(self.values)
         self.dup    = SetSubclass(self.values)
         self.length = 1
-        self.repr   = "SetSubclass({ {{3}} })"
+        self.repr   = "SetSubclass({{{{3}}}})"
 
 #------------------------------------------------------------------------------
 
@@ -1040,7 +1040,7 @@ class TestBasicOpsFrozenSet4(TestBasicOps, unittest.TestCase):
         self.set    = FrozenSetSubclass(self.values)
         self.dup    = FrozenSetSubclass(self.values)
         self.length = 1
-        self.repr   = "FrozenSetSubclass({ {{3}} })"
+        self.repr   = "FrozenSetSubclass({{{{3}}}})"
 
 #------------------------------------------------------------------------------
 
