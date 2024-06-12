@@ -572,7 +572,7 @@ set_repr_lock_held(PySetObject *so)
                                         listrepr);
         }
         else {
-            result = PyUnicode_FromFormat("%s({ %U })", Py_TYPE(so)->tp_name,
+            result = PyUnicode_FromFormat("%s({%U})", Py_TYPE(so)->tp_name,
                                         listrepr);
         }
     }
