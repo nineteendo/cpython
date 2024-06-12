@@ -3231,9 +3231,10 @@ dict_repr_lock_held(PyObject *self)
         Py_INCREF(value);
 
         if (first) {
-            if (starting_frozenset = PyFrozenSet_CheckExact(key))
-                if (_PyUnicodeWriter_WriteChar(&writer, ' ') < 0)
-                    goto error;
+            starting_frozenset = PyFrozenSet_CheckExact(key);
+            if (starting_frozenset &&
+                _PyUnicodeWriter_WriteChar(&writer, ' ') < 0)
+                goto error;
         } else {
             if (_PyUnicodeWriter_WriteASCIIString(&writer, ", ", 2) < 0)
                 goto error;
