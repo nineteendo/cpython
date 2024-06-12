@@ -615,7 +615,7 @@ class PrettyPrinter:
             if self._sort_dicts:
                 items = sorted(object.items(), key=_safe_tuple)
             else:
-                items = object.items()
+                items = list(object.items())
             starting_frozenset = items and type(items[0][0]) is frozenset
             for k, v in items:
                 krepr, kreadable, krecur = self.format(
