@@ -1002,6 +1002,17 @@ class TestBasicOpsTuple(TestBasicOps, unittest.TestCase):
 
 #------------------------------------------------------------------------------
 
+class TestBasicOpsFrozenSets(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "frozenset set"
+        self.values = [{{3}}]
+        self.set    = set(self.values)
+        self.dup    = set(self.values)
+        self.length = 1
+        self.repr   = "{ {{3}} }"
+
+#------------------------------------------------------------------------------
+
 class TestBasicOpsTriple(TestBasicOps, unittest.TestCase):
     def setUp(self):
         self.case   = "triple set"
