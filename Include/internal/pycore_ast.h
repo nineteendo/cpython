@@ -358,12 +358,13 @@ struct _stmt {
 
 enum _expr_kind {BoolOp_kind=1, NamedExpr_kind=2, BinOp_kind=3, UnaryOp_kind=4,
                   Lambda_kind=5, IfExp_kind=6, Dict_kind=7, Set_kind=8,
-                  ListComp_kind=9, SetComp_kind=10, DictComp_kind=11,
-                  GeneratorExp_kind=12, Await_kind=13, Yield_kind=14,
-                  YieldFrom_kind=15, Compare_kind=16, Call_kind=17,
-                  FormattedValue_kind=18, JoinedStr_kind=19, Constant_kind=20,
-                  Attribute_kind=21, Subscript_kind=22, Starred_kind=23,
-                  Name_kind=24, List_kind=25, Tuple_kind=26, Slice_kind=27};
+                  FrozenSet_kind=9, ListComp_kind=10, SetComp_kind=11,
+                  FrozenSetComp_kind=12, DictComp_kind=13,
+                  GeneratorExp_kind=14, Await_kind=15, Yield_kind=16,
+                  YieldFrom_kind=17, Compare_kind=18, Call_kind=19,
+                  FormattedValue_kind=20, JoinedStr_kind=21, Constant_kind=22,
+                  Attribute_kind=23, Subscript_kind=24, Starred_kind=25,
+                  Name_kind=26, List_kind=27, Tuple_kind=28, Slice_kind=29};
 struct _expr {
     enum _expr_kind kind;
     union {
@@ -409,6 +410,10 @@ struct _expr {
         } Set;
 
         struct {
+            asdl_expr_seq *elts;
+        } FrozenSet;
+
+        struct {
             expr_ty elt;
             asdl_comprehension_seq *generators;
         } ListComp;
@@ -417,6 +422,11 @@ struct _expr {
             expr_ty elt;
             asdl_comprehension_seq *generators;
         } SetComp;
+
+        struct {
+            expr_ty elt;
+            asdl_comprehension_seq *generators;
+        } FrozenSetComp;
 
         struct {
             expr_ty key;
@@ -793,12 +803,17 @@ expr_ty _PyAST_Dict(asdl_expr_seq * keys, asdl_expr_seq * values, int lineno,
                     *arena);
 expr_ty _PyAST_Set(asdl_expr_seq * elts, int lineno, int col_offset, int
                    end_lineno, int end_col_offset, PyArena *arena);
+expr_ty _PyAST_FrozenSet(asdl_expr_seq * elts, int lineno, int col_offset, int
+                         end_lineno, int end_col_offset, PyArena *arena);
 expr_ty _PyAST_ListComp(expr_ty elt, asdl_comprehension_seq * generators, int
                         lineno, int col_offset, int end_lineno, int
                         end_col_offset, PyArena *arena);
 expr_ty _PyAST_SetComp(expr_ty elt, asdl_comprehension_seq * generators, int
                        lineno, int col_offset, int end_lineno, int
                        end_col_offset, PyArena *arena);
+expr_ty _PyAST_FrozenSetComp(expr_ty elt, asdl_comprehension_seq * generators,
+                             int lineno, int col_offset, int end_lineno, int
+                             end_col_offset, PyArena *arena);
 expr_ty _PyAST_DictComp(expr_ty key, expr_ty value, asdl_comprehension_seq *
                         generators, int lineno, int col_offset, int end_lineno,
                         int end_col_offset, PyArena *arena);

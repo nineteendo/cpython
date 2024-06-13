@@ -43,10 +43,11 @@
 #include "pycore_opcode_metadata.h" // _PyOpcode_opcode_metadata, _PyOpcode_num_popped/pushed
 #undef NEED_OPCODE_METADATA
 
-#define COMP_GENEXP   0
-#define COMP_LISTCOMP 1
-#define COMP_SETCOMP  2
-#define COMP_DICTCOMP 3
+#define COMP_GENEXP         0
+#define COMP_LISTCOMP       1
+#define COMP_SETCOMP        2
+#define COMP_FROZENSETCOMP  3
+#define COMP_DICTCOMP       4
 
 /* A soft limit for stack use, to avoid excessive
  * memory use for large constants, etc.
@@ -4464,6 +4465,14 @@ compiler_set(struct compiler *c, expr_ty e)
                              BUILD_SET, SET_ADD, SET_UPDATE, 0);
 }
 
+static int
+compiler_frozenset(struct compiler *c, expr_ty e)
+{
+    location loc = LOC(e);
+    return starunpack_helper(c, loc, e->v.FrozenSet.elts, 0,
+                             BUILD_FROZENSET, SET_ADD, SET_UPDATE, 0);
+}
+
 static bool
 are_all_items_const(asdl_expr_seq *seq, Py_ssize_t begin, Py_ssize_t end)
 {
@@ -4626,6 +4635,9 @@ infer_type(expr_ty e)
     case Set_kind:
     case SetComp_kind:
         return &PySet_Type;
+    case FrozenSet_kind:
+    case FrozenSetComp_kind:
+        return &PyFrozenSet_Type;
     case GeneratorExp_kind:
         return &PyGen_Type;
     case Lambda_kind:
@@ -4651,7 +4663,9 @@ check_caller(struct compiler *c, expr_ty e)
     case Dict_kind:
     case DictComp_kind:
     case Set_kind:
+    case FrozenSet_kind:
     case SetComp_kind:
+    case FrozenSetComp_kind:
     case GeneratorExp_kind:
     case JoinedStr_kind:
     case FormattedValue_kind: {
@@ -4681,7 +4695,9 @@ check_subscripter(struct compiler *c, expr_ty e)
         }
         /* fall through */
     case Set_kind:
+    case FrozenSet_kind:
     case SetComp_kind:
+    case FrozenSetComp_kind:
     case GeneratorExp_kind:
     case Lambda_kind: {
         location loc = LOC(e);
@@ -5217,9 +5233,9 @@ ex_call:
 }
 
 
-/* List and set comprehensions and generator expressions work by creating a
-  nested function to perform the actual iteration. This means that the
-  iteration variables don't leak into the current scope.
+/* List and (frozen) set comprehensions and generator expressions work by
+  creating a nested function to perform the actual iteration. This means that
+  the iteration variables don't leak into the current scope.
   The defined function is called immediately following its definition, with the
   result of that call being the result of the expression.
   The LC/SC version returns the populated container, while the GE version is
@@ -5340,6 +5356,7 @@ compiler_sync_comprehension_generator(struct compiler *c, location loc,
             ADDOP_I(c, elt_loc, LIST_APPEND, depth + 1);
             break;
         case COMP_SETCOMP:
+        case COMP_FROZENSETCOMP:
             VISIT(c, expr, elt);
             ADDOP_I(c, elt_loc, SET_ADD, depth + 1);
             break;
@@ -5444,6 +5461,7 @@ compiler_async_comprehension_generator(struct compiler *c, location loc,
             ADDOP_I(c, elt_loc, LIST_APPEND, depth + 1);
             break;
         case COMP_SETCOMP:
+        case COMP_FROZENSETCOMP:
             VISIT(c, expr, elt);
             ADDOP_I(c, elt_loc, SET_ADD, depth + 1);
             break;
@@ -5757,6 +5775,9 @@ compiler_comprehension(struct compiler *c, expr_ty e, int type,
         case COMP_SETCOMP:
             op = BUILD_SET;
             break;
+        case COMP_FROZENSETCOMP:
+            op = BUILD_FROZENSET;
+            break;
         case COMP_DICTCOMP:
             op = BUILD_MAP;
             break;
@@ -5862,6 +5883,17 @@ compiler_setcomp(struct compiler *c, expr_ty e)
     return compiler_comprehension(c, e, COMP_SETCOMP, &_Py_STR(anon_setcomp),
                                   e->v.SetComp.generators,
                                   e->v.SetComp.elt, NULL);
+}
+
+static int
+compiler_frozensetcomp(struct compiler *c, expr_ty e)
+{
+    assert(e->kind == FrozenSetComp_kind);
+    _Py_DECLARE_STR(anon_frozensetcomp, "<frozensetcomp>");
+    return compiler_comprehension(c, e, COMP_FROZENSETCOMP,
+                                  &_Py_STR(anon_frozensetcomp),
+                                  e->v.FrozenSetComp.generators,
+                                  e->v.FrozenSetComp.elt, NULL);
 }
 
 
@@ -6136,12 +6168,16 @@ compiler_visit_expr1(struct compiler *c, expr_ty e)
         return compiler_dict(c, e);
     case Set_kind:
         return compiler_set(c, e);
+    case FrozenSet_kind:
+        return compiler_frozenset(c, e);
     case GeneratorExp_kind:
         return compiler_genexp(c, e);
     case ListComp_kind:
         return compiler_listcomp(c, e);
     case SetComp_kind:
         return compiler_setcomp(c, e);
+    case FrozenSetComp_kind:
+        return compiler_frozensetcomp(c, e);
     case DictComp_kind:
         return compiler_dictcomp(c, e);
     case Yield_kind:

@@ -965,11 +965,12 @@ class DSLParser:
                         visit_IfExp = bad_node
 
                         # comprehensions and generator expressions
-                        visit_ListComp = visit_SetComp = bad_node
+                        visit_ListComp = bad_node
+                        visit_SetComp = visit_FrozenSetComp = bad_node
                         visit_DictComp = visit_GeneratorExp = bad_node
 
                         # literals for advanced types
-                        visit_Dict = visit_Set = bad_node
+                        visit_Dict = visit_Set = visit_FrozenSet = bad_node
                         visit_List = visit_Tuple = bad_node
 
                         # "starred": "a = [1, 2, 3]; *a"

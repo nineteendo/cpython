@@ -258,20 +258,43 @@ class PrettyPrinter:
             stream.write(repr(object))
             return
         typ = object.__class__
+        object = sorted(object, key=_safe_key)
         if typ is set:
             stream.write('{')
             endchar = '}'
+            if object and type(object[0]) is frozenset:
+                stream.write(' ')
+                endchar = ' ' + endchar
+                indent += 1
+                allowance += 1
         else:
-            stream.write(typ.__name__ + '({')
-            endchar = '})'
-            indent += len(typ.__name__) + 1
-        object = sorted(object, key=_safe_key)
+            stream.write(typ.__name__ + '({{')
+            endchar = '}})'
+            indent += len(typ.__name__) + 2
         self._format_items(object, stream, indent, allowance + len(endchar),
                            context, level)
         stream.write(endchar)
 
     _dispatch[set.__repr__] = _pprint_set
-    _dispatch[frozenset.__repr__] = _pprint_set
+
+    def _pprint_frozenset(self, object, stream, indent, allowance, context, level):
+        if not len(object):
+            stream.write(repr(object))
+            return
+        typ = object.__class__
+        object = sorted(object, key=_safe_key)
+        if typ is frozenset:
+            stream.write('{{')
+            endchar = '}}'
+        else:
+            stream.write(typ.__name__ + '({{')
+            endchar = '}})'
+            indent += len(typ.__name__) + 1
+        self._format_items(object, stream, indent + 1, allowance + len(endchar),
+                           context, level)
+        stream.write(endchar)
+
+    _dispatch[frozenset.__repr__] = _pprint_frozenset
 
     def _pprint_str(self, object, stream, indent, allowance, context, level):
         write = stream.write
@@ -383,6 +406,13 @@ class PrettyPrinter:
         indent += self._indent_per_level
         delimnl = ',\n' + ' ' * indent
         last_index = len(items) - 1
+        starting_frozenset = items and type(items[0][0]) is frozenset
+        if starting_frozenset:
+            write(' ')
+            delimnl += ' '
+            indent += 1
+            allowance += 1
+
         for i, (key, ent) in enumerate(items):
             last = i == last_index
             rep = self._repr(key, context, level)
@@ -393,6 +423,9 @@ class PrettyPrinter:
                          context, level)
             if not last:
                 write(delimnl)
+
+        if starting_frozenset:
+            write(' ')
 
     def _format_namespace_items(self, items, stream, indent, allowance, context, level):
         write = stream.write
@@ -582,7 +615,8 @@ class PrettyPrinter:
             if self._sort_dicts:
                 items = sorted(object.items(), key=_safe_tuple)
             else:
-                items = object.items()
+                items = list(object.items())
+            starting_frozenset = items and type(items[0][0]) is frozenset
             for k, v in items:
                 krepr, kreadable, krecur = self.format(
                     k, context, maxlevels, level)
@@ -593,7 +627,10 @@ class PrettyPrinter:
                 if krecur or vrecur:
                     recursive = True
             del context[objid]
-            return "{%s}" % ", ".join(components), readable, recursive
+            if starting_frozenset:
+                return "{ %s }" % ", ".join(components), readable, recursive
+            else:
+                return "{%s}" % ", ".join(components), readable, recursive
 
         if (issubclass(typ, list) and r is list.__repr__) or \
            (issubclass(typ, tuple) and r is tuple.__repr__):
@@ -632,8 +669,7 @@ class PrettyPrinter:
         rep = repr(object)
         return rep, (rep and not rep.startswith('<')), False
 
-_builtin_scalars = frozenset({str, bytes, bytearray, float, complex,
-                              bool, type(None)})
+_builtin_scalars = {{str, bytes, bytearray, float, complex, bool, type(None)}}
 
 def _recursion(object):
     return ("<Recursion on %s with id=%s>"

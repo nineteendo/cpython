@@ -154,6 +154,10 @@ exec_tests = [
     "{r for l in x if g}",
     # setcomp with naked tuple
     "{r for l,m in x}",
+    # frozensetcomp
+    "{{r for l in x if g}}",
+    # frozensetcomp with naked tuple
+    "{{r for l,m in x}}",
     # AsyncFunctionDef
     "async def f():\n 'async function'\n await something()",
     # AsyncFor
@@ -163,6 +167,7 @@ exec_tests = [
     # PEP 448: Additional Unpacking Generalizations
     "{**{1:2}, 2:3}",
     "{*{1, 2}, 3}",
+    "{{*{1, 2}, 3}}",
     # Asynchronous comprehensions
     "async def f():\n [i async for b in c]",
     # Decorated FunctionDef
@@ -236,6 +241,8 @@ eval_tests = [
   "{}",
   # Set
   "{None,}",
+  # Frozenset
+  "{{None,}}",
   # Multiline dict (test for .lineno & .col_offset)
   """{
       1
@@ -253,6 +260,9 @@ eval_tests = [
   "{(a,b) for a,b in c}",
   "{(a,b) for (a,b) in c}",
   "{(a,b) for [a,b] in c}",
+  "{{(a,b) for a,b in c}}",
+  "{{(a,b) for (a,b) in c}}",
+  "{{(a,b) for [a,b] in c}}",
   "((a,b) for a,b in c)",
   "((a,b) for (a,b) in c)",
   "((a,b) for [a,b] in c)",
@@ -1430,8 +1440,10 @@ Module(
         self.assertEqual(ast.literal_eval('{"foo": 42}'), {"foo": 42})
         self.assertEqual(ast.literal_eval('(True, False, None)'), (True, False, None))
         self.assertEqual(ast.literal_eval('{1, 2, 3}'), {1, 2, 3})
+        self.assertEqual(ast.literal_eval('{{1, 2, 3}}'), {{1, 2, 3}})
         self.assertEqual(ast.literal_eval('b"hi"'), b"hi")
         self.assertEqual(ast.literal_eval('set()'), set())
+        self.assertEqual(ast.literal_eval('frozenset()'), frozenset())
         self.assertRaises(ValueError, ast.literal_eval, 'foo()')
         self.assertEqual(ast.literal_eval('6'), 6)
         self.assertEqual(ast.literal_eval('+6'), 6)
@@ -1840,6 +1852,11 @@ class ASTValidatorTests(unittest.TestCase):
         s = ast.Set([ast.Name("x", ast.Store())])
         self.expr(s, "must have Load context")
 
+    def test_frozenset(self):
+        self.expr(ast.FrozenSet([None]), "None disallowed")
+        fs = ast.FrozenSet([ast.Name("x", ast.Store())])
+        self.expr(fs, "must have Load context")
+
     def _check_comprehension(self, fac):
         self.expr(fac([]), "comprehension with no generators")
         g = ast.comprehension(ast.Name("x", ast.Load()),
@@ -1869,6 +1886,9 @@ class ASTValidatorTests(unittest.TestCase):
 
     def test_setcomp(self):
         self._simple_comp(ast.SetComp)
+
+    def test_frozensetcomp(self):
+        self._simple_comp(ast.FrozenSetComp)
 
     def test_generatorexp(self):
         self._simple_comp(ast.GeneratorExp)
@@ -3006,11 +3026,14 @@ exec_results = [
 ('Module', [('Expr', (1, 0, 1, 20), ('DictComp', (1, 0, 1, 20), ('Name', (1, 1, 1, 2), 'a', ('Load',)), ('Name', (1, 5, 1, 6), 'b', ('Load',)), [('comprehension', ('Tuple', (1, 11, 1, 14), [('Name', (1, 11, 1, 12), 'v', ('Store',)), ('Name', (1, 13, 1, 14), 'w', ('Store',))], ('Store',)), ('Name', (1, 18, 1, 19), 'x', ('Load',)), [], 0)]))], []),
 ('Module', [('Expr', (1, 0, 1, 19), ('SetComp', (1, 0, 1, 19), ('Name', (1, 1, 1, 2), 'r', ('Load',)), [('comprehension', ('Name', (1, 7, 1, 8), 'l', ('Store',)), ('Name', (1, 12, 1, 13), 'x', ('Load',)), [('Name', (1, 17, 1, 18), 'g', ('Load',))], 0)]))], []),
 ('Module', [('Expr', (1, 0, 1, 16), ('SetComp', (1, 0, 1, 16), ('Name', (1, 1, 1, 2), 'r', ('Load',)), [('comprehension', ('Tuple', (1, 7, 1, 10), [('Name', (1, 7, 1, 8), 'l', ('Store',)), ('Name', (1, 9, 1, 10), 'm', ('Store',))], ('Store',)), ('Name', (1, 14, 1, 15), 'x', ('Load',)), [], 0)]))], []),
+('Module', [('Expr', (1, 0, 1, 21), ('FrozenSetComp', (1, 0, 1, 21), ('Name', (1, 2, 1, 3), 'r', ('Load',)), [('comprehension', ('Name', (1, 8, 1, 9), 'l', ('Store',)), ('Name', (1, 13, 1, 14), 'x', ('Load',)), [('Name', (1, 18, 1, 19), 'g', ('Load',))], 0)]))], []),
+('Module', [('Expr', (1, 0, 1, 18), ('FrozenSetComp', (1, 0, 1, 18), ('Name', (1, 2, 1, 3), 'r', ('Load',)), [('comprehension', ('Tuple', (1, 8, 1, 11), [('Name', (1, 8, 1, 9), 'l', ('Store',)), ('Name', (1, 10, 1, 11), 'm', ('Store',))], ('Store',)), ('Name', (1, 15, 1, 16), 'x', ('Load',)), [], 0)]))], []),
 ('Module', [('AsyncFunctionDef', (1, 0, 3, 18), 'f', ('arguments', [], [], None, [], [], None, []), [('Expr', (2, 1, 2, 17), ('Constant', (2, 1, 2, 17), 'async function', None)), ('Expr', (3, 1, 3, 18), ('Await', (3, 1, 3, 18), ('Call', (3, 7, 3, 18), ('Name', (3, 7, 3, 16), 'something', ('Load',)), [], [])))], [], None, None, [])], []),
 ('Module', [('AsyncFunctionDef', (1, 0, 3, 8), 'f', ('arguments', [], [], None, [], [], None, []), [('AsyncFor', (2, 1, 3, 8), ('Name', (2, 11, 2, 12), 'e', ('Store',)), ('Name', (2, 16, 2, 17), 'i', ('Load',)), [('Expr', (2, 19, 2, 20), ('Constant', (2, 19, 2, 20), 1, None))], [('Expr', (3, 7, 3, 8), ('Constant', (3, 7, 3, 8), 2, None))], None)], [], None, None, [])], []),
 ('Module', [('AsyncFunctionDef', (1, 0, 2, 21), 'f', ('arguments', [], [], None, [], [], None, []), [('AsyncWith', (2, 1, 2, 21), [('withitem', ('Name', (2, 12, 2, 13), 'a', ('Load',)), ('Name', (2, 17, 2, 18), 'b', ('Store',)))], [('Expr', (2, 20, 2, 21), ('Constant', (2, 20, 2, 21), 1, None))], None)], [], None, None, [])], []),
 ('Module', [('Expr', (1, 0, 1, 14), ('Dict', (1, 0, 1, 14), [None, ('Constant', (1, 10, 1, 11), 2, None)], [('Dict', (1, 3, 1, 8), [('Constant', (1, 4, 1, 5), 1, None)], [('Constant', (1, 6, 1, 7), 2, None)]), ('Constant', (1, 12, 1, 13), 3, None)]))], []),
 ('Module', [('Expr', (1, 0, 1, 12), ('Set', (1, 0, 1, 12), [('Starred', (1, 1, 1, 8), ('Set', (1, 2, 1, 8), [('Constant', (1, 3, 1, 4), 1, None), ('Constant', (1, 6, 1, 7), 2, None)]), ('Load',)), ('Constant', (1, 10, 1, 11), 3, None)]))], []),
+('Module', [('Expr', (1, 0, 1, 14), ('FrozenSet', (1, 0, 1, 14), [('Starred', (1, 2, 1, 9), ('Set', (1, 3, 1, 9), [('Constant', (1, 4, 1, 5), 1, None), ('Constant', (1, 7, 1, 8), 2, None)]), ('Load',)), ('Constant', (1, 11, 1, 12), 3, None)]))], []),
 ('Module', [('AsyncFunctionDef', (1, 0, 2, 21), 'f', ('arguments', [], [], None, [], [], None, []), [('Expr', (2, 1, 2, 21), ('ListComp', (2, 1, 2, 21), ('Name', (2, 2, 2, 3), 'i', ('Load',)), [('comprehension', ('Name', (2, 14, 2, 15), 'b', ('Store',)), ('Name', (2, 19, 2, 20), 'c', ('Load',)), [], 1)]))], [], None, None, [])], []),
 ('Module', [('FunctionDef', (4, 0, 4, 13), 'f', ('arguments', [], [], None, [], [], None, []), [('Pass', (4, 9, 4, 13))], [('Name', (1, 1, 1, 6), 'deco1', ('Load',)), ('Call', (2, 1, 2, 8), ('Name', (2, 1, 2, 6), 'deco2', ('Load',)), [], []), ('Call', (3, 1, 3, 9), ('Name', (3, 1, 3, 6), 'deco3', ('Load',)), [('Constant', (3, 7, 3, 8), 1, None)], [])], None, None, [])], []),
 ('Module', [('AsyncFunctionDef', (4, 0, 4, 19), 'f', ('arguments', [], [], None, [], [], None, []), [('Pass', (4, 15, 4, 19))], [('Name', (1, 1, 1, 6), 'deco1', ('Load',)), ('Call', (2, 1, 2, 8), ('Name', (2, 1, 2, 6), 'deco2', ('Load',)), [], []), ('Call', (3, 1, 3, 9), ('Name', (3, 1, 3, 6), 'deco3', ('Load',)), [('Constant', (3, 7, 3, 8), 1, None)], [])], None, None, [])], []),
@@ -3057,6 +3080,7 @@ eval_results = [
 ('Expression', ('Dict', (1, 0, 1, 7), [('Constant', (1, 2, 1, 3), 1, None)], [('Constant', (1, 4, 1, 5), 2, None)])),
 ('Expression', ('Dict', (1, 0, 1, 2), [], [])),
 ('Expression', ('Set', (1, 0, 1, 7), [('Constant', (1, 1, 1, 5), None, None)])),
+('Expression', ('FrozenSet', (1, 0, 1, 9), [('Constant', (1, 2, 1, 6), None, None)])),
 ('Expression', ('Dict', (1, 0, 5, 6), [('Constant', (2, 6, 2, 7), 1, None)], [('Constant', (4, 10, 4, 11), 2, None)])),
 ('Expression', ('ListComp', (1, 0, 1, 19), ('Name', (1, 1, 1, 2), 'a', ('Load',)), [('comprehension', ('Name', (1, 7, 1, 8), 'b', ('Store',)), ('Name', (1, 12, 1, 13), 'c', ('Load',)), [('Name', (1, 17, 1, 18), 'd', ('Load',))], 0)])),
 ('Expression', ('GeneratorExp', (1, 0, 1, 19), ('Name', (1, 1, 1, 2), 'a', ('Load',)), [('comprehension', ('Name', (1, 7, 1, 8), 'b', ('Store',)), ('Name', (1, 12, 1, 13), 'c', ('Load',)), [('Name', (1, 17, 1, 18), 'd', ('Load',))], 0)])),
@@ -3066,6 +3090,9 @@ eval_results = [
 ('Expression', ('SetComp', (1, 0, 1, 20), ('Tuple', (1, 1, 1, 6), [('Name', (1, 2, 1, 3), 'a', ('Load',)), ('Name', (1, 4, 1, 5), 'b', ('Load',))], ('Load',)), [('comprehension', ('Tuple', (1, 11, 1, 14), [('Name', (1, 11, 1, 12), 'a', ('Store',)), ('Name', (1, 13, 1, 14), 'b', ('Store',))], ('Store',)), ('Name', (1, 18, 1, 19), 'c', ('Load',)), [], 0)])),
 ('Expression', ('SetComp', (1, 0, 1, 22), ('Tuple', (1, 1, 1, 6), [('Name', (1, 2, 1, 3), 'a', ('Load',)), ('Name', (1, 4, 1, 5), 'b', ('Load',))], ('Load',)), [('comprehension', ('Tuple', (1, 11, 1, 16), [('Name', (1, 12, 1, 13), 'a', ('Store',)), ('Name', (1, 14, 1, 15), 'b', ('Store',))], ('Store',)), ('Name', (1, 20, 1, 21), 'c', ('Load',)), [], 0)])),
 ('Expression', ('SetComp', (1, 0, 1, 22), ('Tuple', (1, 1, 1, 6), [('Name', (1, 2, 1, 3), 'a', ('Load',)), ('Name', (1, 4, 1, 5), 'b', ('Load',))], ('Load',)), [('comprehension', ('List', (1, 11, 1, 16), [('Name', (1, 12, 1, 13), 'a', ('Store',)), ('Name', (1, 14, 1, 15), 'b', ('Store',))], ('Store',)), ('Name', (1, 20, 1, 21), 'c', ('Load',)), [], 0)])),
+('Expression', ('FrozenSetComp', (1, 0, 1, 22), ('Tuple', (1, 2, 1, 7), [('Name', (1, 3, 1, 4), 'a', ('Load',)), ('Name', (1, 5, 1, 6), 'b', ('Load',))], ('Load',)), [('comprehension', ('Tuple', (1, 12, 1, 15), [('Name', (1, 12, 1, 13), 'a', ('Store',)), ('Name', (1, 14, 1, 15), 'b', ('Store',))], ('Store',)), ('Name', (1, 19, 1, 20), 'c', ('Load',)), [], 0)])),
+('Expression', ('FrozenSetComp', (1, 0, 1, 24), ('Tuple', (1, 2, 1, 7), [('Name', (1, 3, 1, 4), 'a', ('Load',)), ('Name', (1, 5, 1, 6), 'b', ('Load',))], ('Load',)), [('comprehension', ('Tuple', (1, 12, 1, 17), [('Name', (1, 13, 1, 14), 'a', ('Store',)), ('Name', (1, 15, 1, 16), 'b', ('Store',))], ('Store',)), ('Name', (1, 21, 1, 22), 'c', ('Load',)), [], 0)])),
+('Expression', ('FrozenSetComp', (1, 0, 1, 24), ('Tuple', (1, 2, 1, 7), [('Name', (1, 3, 1, 4), 'a', ('Load',)), ('Name', (1, 5, 1, 6), 'b', ('Load',))], ('Load',)), [('comprehension', ('List', (1, 12, 1, 17), [('Name', (1, 13, 1, 14), 'a', ('Store',)), ('Name', (1, 15, 1, 16), 'b', ('Store',))], ('Store',)), ('Name', (1, 21, 1, 22), 'c', ('Load',)), [], 0)])),
 ('Expression', ('GeneratorExp', (1, 0, 1, 20), ('Tuple', (1, 1, 1, 6), [('Name', (1, 2, 1, 3), 'a', ('Load',)), ('Name', (1, 4, 1, 5), 'b', ('Load',))], ('Load',)), [('comprehension', ('Tuple', (1, 11, 1, 14), [('Name', (1, 11, 1, 12), 'a', ('Store',)), ('Name', (1, 13, 1, 14), 'b', ('Store',))], ('Store',)), ('Name', (1, 18, 1, 19), 'c', ('Load',)), [], 0)])),
 ('Expression', ('GeneratorExp', (1, 0, 1, 22), ('Tuple', (1, 1, 1, 6), [('Name', (1, 2, 1, 3), 'a', ('Load',)), ('Name', (1, 4, 1, 5), 'b', ('Load',))], ('Load',)), [('comprehension', ('Tuple', (1, 11, 1, 16), [('Name', (1, 12, 1, 13), 'a', ('Store',)), ('Name', (1, 14, 1, 15), 'b', ('Store',))], ('Store',)), ('Name', (1, 20, 1, 21), 'c', ('Load',)), [], 0)])),
 ('Expression', ('GeneratorExp', (1, 0, 1, 22), ('Tuple', (1, 1, 1, 6), [('Name', (1, 2, 1, 3), 'a', ('Load',)), ('Name', (1, 4, 1, 5), 'b', ('Load',))], ('Load',)), [('comprehension', ('List', (1, 11, 1, 16), [('Name', (1, 12, 1, 13), 'a', ('Store',)), ('Name', (1, 14, 1, 15), 'b', ('Store',))], ('Store',)), ('Name', (1, 20, 1, 21), 'c', ('Load',)), [], 0)])),

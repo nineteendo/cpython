@@ -362,6 +362,21 @@ Literals
                     Constant(value=2),
                     Constant(value=3)]))
 
+.. class:: FrozenSet(elts)
+
+   A frozen set. ``elts`` holds a list of nodes representing the frozen set's elements.
+
+   .. doctest::
+
+        >>> print(ast.dump(ast.parse('{{1, 2, 3}}', mode='eval'), indent=4))
+        Expression(
+            body=FrozenSet(
+                elts=[
+                    Constant(value=1),
+                    Constant(value=2),
+                    Constant(value=3)]))
+
+   .. versionadded:: 3.14
 
 .. class:: Dict(keys, values)
 
@@ -723,12 +738,14 @@ Comprehensions
 
 .. class:: ListComp(elt, generators)
            SetComp(elt, generators)
+           FrozenSetComp(elt, generators)
            GeneratorExp(elt, generators)
            DictComp(key, value, generators)
 
-   List and set comprehensions, generator expressions, and dictionary
-   comprehensions. ``elt`` (or ``key`` and ``value``) is a single node
-   representing the part that will be evaluated for each item.
+   List and (frozen) set comprehensions, generator expressions, and
+   dictionary comprehensions. ``elt`` (or ``key`` and ``value``) is
+   a single node representing the part that will be evaluated for
+   each item.
 
    ``generators`` is a list of :class:`comprehension` nodes.
 
@@ -774,6 +791,21 @@ Comprehensions
                         target=Name(id='x', ctx=Store()),
                         iter=Name(id='numbers', ctx=Load()),
                         is_async=0)]))
+        >>> print(ast.dump(
+        ...     ast.parse('{{x for x in numbers}}', mode='eval'),
+        ...     indent=4,
+        ... ))
+        Expression(
+            body=FrozenSetComp(
+                elt=Name(id='x', ctx=Load()),
+                generators=[
+                    comprehension(
+                        target=Name(id='x', ctx=Store()),
+                        iter=Name(id='numbers', ctx=Load()),
+                        is_async=0)]))
+
+   .. versionadded:: 3.14
+        ``FrozenSetComp``
 
 
 .. class:: comprehension(target, iter, ifs, is_async)
@@ -2232,6 +2264,9 @@ and classes for traversing abstract syntax trees:
 
    .. versionchanged:: 3.10
       For string inputs, leading spaces and tabs are now stripped.
+
+   .. versionchanged:: 3.14
+      Now supports creating empty frozen sets with ``'frozenset()'``.
 
 
 .. function:: get_docstring(node, clean=True)

@@ -549,7 +549,6 @@ set_repr_lock_held(PySetObject *so)
 
     /* repr(keys)[1:-1] */
     listrepr = PyObject_Repr(keys);
-    Py_DECREF(keys);
     if (listrepr == NULL)
         goto done;
     tmp = PyUnicode_Substring(listrepr, 1, PyUnicode_GET_LENGTH(listrepr)-1);
@@ -558,12 +557,19 @@ set_repr_lock_held(PySetObject *so)
         goto done;
     listrepr = tmp;
 
-    if (!PySet_CheckExact(so))
-        result = PyUnicode_FromFormat("%s({%U})",
-                                      Py_TYPE(so)->tp_name,
-                                      listrepr);
+    if (PySet_CheckExact(so)) {
+        if (PyFrozenSet_CheckExact(PyList_GET_ITEM(keys, 0))) {
+            result = PyUnicode_FromFormat("{ %U }", listrepr);
+        }
+        else {
+            result = PyUnicode_FromFormat("{%U}", listrepr);
+        }
+    } else if (PyFrozenSet_CheckExact(so))
+        result = PyUnicode_FromFormat("{{%U}}", listrepr);
     else
-        result = PyUnicode_FromFormat("{%U}", listrepr);
+        result = PyUnicode_FromFormat("%s({{%U}})", Py_TYPE(so)->tp_name,
+                                      listrepr);
+    Py_DECREF(keys);
     Py_DECREF(listrepr);
 done:
     Py_ReprLeave((PyObject*)so);
@@ -2717,13 +2723,14 @@ PySet_Pop(PyObject *set)
 }
 
 int
-_PySet_Update(PyObject *set, PyObject *iterable)
+_PySet_Update(PyObject *anyset, PyObject *iterable)
 {
-    if (!PySet_Check(set)) {
+    if (!PySet_Check(anyset) &&
+        (!PyFrozenSet_Check(anyset) || Py_REFCNT(anyset) != 1)) {
         PyErr_BadInternalCall();
         return -1;
     }
-    return set_update_internal((PySetObject *)set, iterable);
+    return set_update_internal((PySetObject *)anyset, iterable);
 }
 
 /* Exported for the gdb plugin's benefit. */

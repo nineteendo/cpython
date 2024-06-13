@@ -800,7 +800,7 @@ not have to be) the original ``STACK[-2]``.
       item = STACK.pop()
       set.add(STACK[-i], item)
 
-   Used to implement set comprehensions.
+   Used to implement (frozen) set comprehensions.
 
 
 .. opcode:: LIST_APPEND (i)
@@ -1120,6 +1120,13 @@ iterations of the loop.
    Works as :opcode:`BUILD_TUPLE`, but creates a set.
 
 
+.. opcode:: BUILD_FROZENSET (count)
+
+   Works as :opcode:`BUILD_TUPLE`, but creates a frozen set.
+
+   .. versionadded:: 3.14
+
+
 .. opcode:: BUILD_MAP (count)
 
    Pushes a new dictionary object onto the stack.  Pops ``2 * count`` items
@@ -1167,7 +1174,7 @@ iterations of the loop.
       seq = STACK.pop()
       set.update(STACK[-i], seq)
 
-   Used to build sets.
+   Used to build (frozen) sets.
 
    .. versionadded:: 3.9
 

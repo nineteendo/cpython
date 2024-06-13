@@ -160,9 +160,9 @@ class LocaleTime(object):
             pass
         self.tzname = time.tzname
         self.daylight = time.daylight
-        no_saving = frozenset({"utc", "gmt", self.tzname[0].lower()})
+        no_saving = {{"utc", "gmt", self.tzname[0].lower()}}
         if self.daylight:
-            has_saving = frozenset({self.tzname[1].lower()})
+            has_saving = {{self.tzname[1].lower()}}
         else:
             has_saving = frozenset()
         self.timezone = (no_saving, has_saving)

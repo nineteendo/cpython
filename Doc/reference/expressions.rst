@@ -57,7 +57,7 @@ also categorized syntactically as atoms.  The syntax for atoms is:
 .. productionlist:: python-grammar
    atom: `identifier` | `literal` | `enclosure`
    enclosure: `parenth_form` | `list_display` | `dict_display` | `set_display`
-            : | `generator_expression` | `yield_atom`
+            : | `frozenset_display` | `generator_expression` | `yield_atom`
 
 
 .. _atom-identifiers:
@@ -161,13 +161,13 @@ ambiguities and allow common typos to pass uncaught.
 
 .. _comprehensions:
 
-Displays for lists, sets and dictionaries
------------------------------------------
+Displays for lists, (frozen) sets and dictionaries
+--------------------------------------------------
 
 .. index:: single: comprehensions
 
-For constructing a list, a set or a dictionary Python provides special syntax
-called "displays", each of them in two flavors:
+For constructing a list, a (frozen) set or a dictionary Python provides special
+syntax called "displays", each of them in two flavors:
 
 * either the container contents are listed explicitly, or
 
@@ -290,6 +290,34 @@ An empty set cannot be constructed with ``{}``; this literal constructs an empty
 dictionary.
 
 
+.. _frozenset:
+
+Frozen set displays
+-------------------
+
+.. index::
+   pair: frozenset; display
+   pair: frozenset; comprehensions
+   pair: object; frozenset
+   single: {{}} (double curly brackets); frozenset expression
+   single: , (comma); expression list
+
+A frozen set display is denoted by double curly braces:
+
+.. productionlist:: python-grammar
+   frozenset_display: "{{" (`starred_list` | `comprehension`) "}}"
+
+A frozen set display yields a new immutable set object, the contents being
+specified by either a sequence of expressions or a comprehension.  When a
+comma-separated list of expressions is supplied, its elements are evaluated
+from left to right and added to the frozenset object.  When a comprehension
+is supplied, the frozen set is constructed from the elements resulting from
+the comprehension.
+
+An empty frozen set cannot be constructed with ``{{}}``; this literal is
+reserved for an empty frozen dictionary.
+
+
 .. _dict:
 
 Dictionary displays
@@ -333,8 +361,8 @@ earlier dict items and earlier dictionary unpackings.
 .. versionadded:: 3.5
    Unpacking into dictionary displays, originally proposed by :pep:`448`.
 
-A dict comprehension, in contrast to list and set comprehensions, needs two
-expressions separated with a colon followed by the usual "for" and "if" clauses.
+A dict comprehension, in contrast to list and (frozen) set comprehensions, needs
+two expressions separated with a colon followed by the usual "for" and "if" clauses.
 When the comprehension is run, the resulting key and value elements are inserted
 in the new dictionary in the order they are produced.
 

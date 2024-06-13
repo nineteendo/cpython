@@ -222,7 +222,7 @@ _MODULE_IDENTIFIER_RE = re.compile(r'^(?:\s*(\w+)\s*\.)?\s*(\w+)')
 
 # Atomic immutable types which don't require any recursive handling and for which deepcopy
 # returns the same object. We can provide a fast-path for these types in asdict and astuple.
-_ATOMIC_TYPES = frozenset({
+_ATOMIC_TYPES = {{
     # Common JSON Serializable types
     types.NoneType,
     bool,
@@ -241,7 +241,7 @@ _ATOMIC_TYPES = frozenset({
     type,
     range,
     property,
-})
+}}
 
 
 class InitVar:

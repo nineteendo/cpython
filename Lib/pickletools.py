@@ -1737,7 +1737,7 @@ opcodes = [
       of the stack from the topmost markobject onward.  For example,
 
       Stack before: ... markobject 1 2 3
-      Stack after:  ... frozenset({1, 2, 3})
+      Stack after:  ... {{1, 2, 3}}
       """),
 
     # Stack manipulation.

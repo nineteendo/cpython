@@ -317,9 +317,11 @@ class TestJointOps:
         w.value = s
         if self.thetype == set:
             self.assertEqual(repr(s), '{set(...)}')
+        elif self.thetype == frozenset:
+            self.assertEqual(repr(s), '{{frozenset(...)}}')
         else:
             name = repr(s).partition('(')[0]    # strip class name
-            self.assertEqual(repr(s), '%s({%s(...)})' % (name, name))
+            self.assertEqual(repr(s), '%s({{%s(...)}})' % (name, name))
 
     def test_do_not_rehash_dict_keys(self):
         n = 10
@@ -689,6 +691,27 @@ class TestFrozenSet(TestJointOps, unittest.TestCase):
         t = self.thetype(s)
         self.assertEqual(id(s), id(t))
 
+    def test_frozenset_literal(self):
+        s = frozenset([1,2,3])
+        t = {{1,2,3}}
+        self.assertEqual(s, t)
+
+    def test_frozenset_literal_insertion_order(self):
+        # SF Issue #26020 -- Expect left to right insertion
+        s = {{1, 1.0, True}}
+        self.assertEqual(len(s), 1)
+        stored_value = list(s)[0]
+        self.assertEqual(type(stored_value), int)
+
+    def test_frozenset_literal_evaluation_order(self):
+        # Expect left to right expression evaluation
+        events = []
+        def record(obj):
+            events.append(obj)
+        s = {{record(1), record(2), record(3)}}
+        self.assertEqual(events, [1, 2, 3])
+
+
     def test_hash(self):
         self.assertEqual(hash(self.thetype('abcdeb')),
                          hash(self.thetype('ebecda')))
@@ -976,6 +999,48 @@ class TestBasicOpsTuple(TestBasicOps, unittest.TestCase):
 
     def test_not_in(self):
         self.assertNotIn(9, self.set)
+
+#------------------------------------------------------------------------------
+
+class TestBasicOpsFrozenSet1(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "unit set (frozenset)"
+        self.values = [{{3}}]
+        self.set    = set(self.values)
+        self.dup    = set(self.values)
+        self.length = 1
+        self.repr   = "{ {{3}} }"
+
+class TestBasicOpsFrozenSet2(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "unit frozenset (frozenset)"
+        self.values = [{{3}}]
+        self.set    = frozenset(self.values)
+        self.dup    = frozenset(self.values)
+        self.length = 1
+        self.repr   = "{{{{3}}}}"
+
+#------------------------------------------------------------------------------
+
+class TestBasicOpsFrozenSet3(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "unit set subclass (frozenset)"
+        self.values = [{{3}}]
+        self.set    = SetSubclass(self.values)
+        self.dup    = SetSubclass(self.values)
+        self.length = 1
+        self.repr   = "SetSubclass({{{{3}}}})"
+
+#------------------------------------------------------------------------------
+
+class TestBasicOpsFrozenSet4(TestBasicOps, unittest.TestCase):
+    def setUp(self):
+        self.case   = "unit frozenset subclass (frozenset)"
+        self.values = [{{3}}]
+        self.set    = FrozenSetSubclass(self.values)
+        self.dup    = FrozenSetSubclass(self.values)
+        self.length = 1
+        self.repr   = "FrozenSetSubclass({{{{3}}}})"
 
 #------------------------------------------------------------------------------
 

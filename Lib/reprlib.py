@@ -126,7 +126,7 @@ class Repr:
         if not x:
             return 'frozenset()'
         x = _possibly_sorted(x)
-        return self._repr_iterable(x, level, 'frozenset({', '})',
+        return self._repr_iterable(x, level, '{{', '}}',
                                    self.maxfrozenset)
 
     def repr_deque(self, x, level):
