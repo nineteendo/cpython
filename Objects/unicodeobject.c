@@ -9057,10 +9057,10 @@ _PyUnicode_TransformDecimalAndSpaceToASCII(PyObject *unicode)
     }
 
 static Py_ssize_t
-fast_find(const void *buf1, int kind1, Py_ssize_t len1,
-          const void *buf2, int kind2, Py_ssize_t len2,
-          Py_ssize_t start, Py_ssize_t end,
-          int isascii, int direction)
+fast_find_sub(const void *buf1, int kind1, Py_ssize_t len1,
+              const void *buf2, int kind2, Py_ssize_t len2,
+              Py_ssize_t start, Py_ssize_t end,
+              int isascii, int direction)
 {
     Py_ssize_t result;
 
@@ -9130,9 +9130,9 @@ fast_find(const void *buf1, int kind1, Py_ssize_t len1,
 }
 
 static Py_ssize_t
-any_find_slice(PyObject* s1, PyObject* s2,
-               Py_ssize_t start, Py_ssize_t end,
-               int direction)
+find_sub(PyObject* s1, PyObject* s2,
+         Py_ssize_t start, Py_ssize_t end,
+         int direction)
 {
     int kind1, kind2, isascii1, isascii2;
     const void *buf1, *buf2;
@@ -9155,15 +9155,15 @@ any_find_slice(PyObject* s1, PyObject* s2,
     buf1 = PyUnicode_DATA(s1);
     buf2 = PyUnicode_DATA(s2);
 
-    return fast_find(buf1, kind1, len1, buf2, kind2, len2, start, end,
-                     isascii1, direction);
+    return fast_find_sub(buf1, kind1, len1, buf2, kind2, len2, start, end,
+                         isascii1, direction);
 }
 
 static Py_ssize_t
-chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
-           PyObject* s2,
-           Py_ssize_t chunk_start, Py_ssize_t chunk_end,
-           Py_ssize_t end, int direction)
+chunk_find_sub(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
+               PyObject* s2,
+               Py_ssize_t chunk_start, Py_ssize_t chunk_end,
+               Py_ssize_t end, int direction)
 {
     int kind2, isascii2;
     const void *buf2;
@@ -9182,12 +9182,12 @@ chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
     buf2 = PyUnicode_DATA(s2);
 
     if (chunk_end >= end - len2) { // Guard overflow
-        return fast_find(buf1, kind1, len1, buf2, kind2, len2, chunk_start,
-                         end, isascii1, direction);
+        return fast_find_sub(buf1, kind1, len1, buf2, kind2, len2, chunk_start,
+                             end, isascii1, direction);
     }
     else {
-        return fast_find(buf1, kind1, len1, buf2, kind2, len2, chunk_start,
-                         chunk_end + len2, isascii1, direction);
+        return fast_find_sub(buf1, kind1, len1, buf2, kind2, len2, chunk_start,
+                             chunk_end + len2, isascii1, direction);
     }
 }
 
@@ -9196,20 +9196,10 @@ chunk_find(const void *buf1, int kind1, int isascii1, Py_ssize_t len1,
 #define FIND_EXP_CHUNK_SIZE 2
 
 static Py_ssize_t
-any_find_first_slice(PyObject *str, const char *function_name,
-                     PyObject *subobj, Py_ssize_t start, Py_ssize_t end,
-                     int direction)
+find_subs(PyObject *str, const char *function_name,
+          PyObject *subobj, Py_ssize_t start, Py_ssize_t end,
+          int direction)
 {
-    if (!PyTuple_Check(subobj)) {
-        if (!PyUnicode_Check(subobj)) {
-            PyErr_Format(PyExc_TypeError,
-                        "%.200s first arg must be str or "
-                        "a tuple of str, not %.100s", function_name,
-                        Py_TYPE(subobj)->tp_name);
-            return -2;
-        }
-        return any_find_slice(str, subobj, start, end, direction);
-    }
     Py_ssize_t tuple_len, result, chunk_size, len1;
     const void *buf1;
     int kind1, isascii1;
@@ -9230,7 +9220,7 @@ any_find_first_slice(PyObject *str, const char *function_name,
     }
     if (tuple_len == 1) {
         PyObject *substr = PyTuple_GET_ITEM(subobj, 0);
-        return any_find_slice(str, substr, start, end, direction);
+        return find_sub(str, substr, start, end, direction);
     }
     assert(FIND_MIN_CHUNK_SIZE > 0);
     assert(FIND_MAX_CHUNK_SIZE >= FIND_MIN_CHUNK_SIZE);
@@ -9257,8 +9247,9 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 Py_ssize_t new_result;
 
                 substr = PyTuple_GET_ITEM(subobj, i);
-                new_result = chunk_find(buf1, kind1, isascii1, len1, substr,
-                                        chunk_start, chunk_end, end, +1);
+                new_result = chunk_find_sub(buf1, kind1, isascii1, len1,
+                                            substr, chunk_start, chunk_end,
+                                            end, +1);
                 if (new_result == -2) {
                     return -2;
                 }
@@ -9292,8 +9283,9 @@ any_find_first_slice(PyObject *str, const char *function_name,
                 Py_ssize_t new_result;
 
                 substr = PyTuple_GET_ITEM(subobj, i);
-                new_result = chunk_find(buf1, kind1, isascii1, len1, substr,
-                                        chunk_start, chunk_end, end, -1);
+                new_result = chunk_find_sub(buf1, kind1, isascii1, len1,
+                                            substr, chunk_start, chunk_end,
+                                            end, -1);
                 if (new_result == -2) {
                     return -2;
                 }
@@ -9316,6 +9308,26 @@ any_find_first_slice(PyObject *str, const char *function_name,
         }
     }
     return result;
+}
+
+static inline Py_ssize_t
+find(PyObject *str, const char *function_name,
+     PyObject *subobj, Py_ssize_t start, Py_ssize_t end,
+     int direction)
+{
+    if (PyTuple_Check(subobj)) {
+        return find_subs(str, subobj, start, end, direction);
+    }
+    else if (!PyUnicode_Check(subobj)) {
+        PyErr_Format(PyExc_TypeError,
+                    "%.200s first arg must be str or "
+                    "a tuple of str, not %.100s", function_name,
+                    Py_TYPE(subobj)->tp_name);
+        return -2;
+    }
+    else {
+        return find_sub(str, subobj, start, end, direction);
+    }
 }
 
 /* _PyUnicode_InsertThousandsGrouping() helper functions */
@@ -9476,7 +9488,7 @@ PyUnicode_Find(PyObject *str,
     if (ensure_unicode(str) < 0 || ensure_unicode(substr) < 0)
         return -2;
 
-    return any_find_slice(str, substr, start, end, direction);
+    return find_sub(str, substr, start, end, direction);
 }
 
 Py_ssize_t
@@ -11535,7 +11547,7 @@ unicode_find_impl(PyObject *str, PyObject *sub, Py_ssize_t start,
                   Py_ssize_t end)
 /*[clinic end generated code: output=da52b0913b08a960 input=a236fecd6e36a36a]*/
 {
-    Py_ssize_t result = any_find_first_slice(str, "find", sub, start, end, +1);
+    Py_ssize_t result = find(str, "find", sub, start, end, +1);
     if (result < 0) {
         return -1;
     }
@@ -11598,8 +11610,7 @@ unicode_index_impl(PyObject *str, PyObject *sub, Py_ssize_t start,
                    Py_ssize_t end)
 /*[clinic end generated code: output=4f3129c11e833e01 input=f0033cf1698b6108]*/
 {
-    Py_ssize_t result = any_find_first_slice(str, "index", sub, start, end,
-                                             +1);
+    Py_ssize_t result = find(str, "index", sub, start, end, +1);
     if (result == -1) {
         PyErr_SetString(PyExc_ValueError, "substring not found");
     }
@@ -12629,8 +12640,7 @@ unicode_rfind_impl(PyObject *str, PyObject *sub, Py_ssize_t start,
                    Py_ssize_t end)
 /*[clinic end generated code: output=0576fddc53b8616e input=23ae7964e8f70b35]*/
 {
-    Py_ssize_t result = any_find_first_slice(str, "rfind", sub, start, end,
-                                             -1);
+    Py_ssize_t result = find(str, "rfind", sub, start, end, -1);
     if (result < 0) {
         return -1;
     }
@@ -12651,8 +12661,7 @@ unicode_rindex_impl(PyObject *str, PyObject *sub, Py_ssize_t start,
                     Py_ssize_t end)
 /*[clinic end generated code: output=137ad2933d200f38 input=990f3925b149c1bc]*/
 {
-    Py_ssize_t result = any_find_first_slice(str, "rindex", sub, start, end,
-                                             -1);
+    Py_ssize_t result = find(str, "rindex", sub, start, end, -1);
     if (result == -1) {
         PyErr_SetString(PyExc_ValueError, "substring not found");
     }
