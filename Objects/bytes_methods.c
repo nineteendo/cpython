@@ -727,11 +727,11 @@ find(const char *str, Py_ssize_t len,
      int direction)
 {
     if (PyTuple_Check(subobj)) {
-        return s(str, len, function_name, subobj, start, end,
+        return _Py_find_subs(str, len, function_name, subobj, start, end,
                              direction);
     }
     else {
-        return (str, len, function_name, subobj, start, end,
+        return _Py_find_sub(str, len, function_name, subobj, start, end,
                             direction);
     }
 }
