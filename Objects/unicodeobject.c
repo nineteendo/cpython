@@ -9316,7 +9316,7 @@ find(PyObject *str, const char *function_name,
      int direction)
 {
     if (PyTuple_Check(subobj)) {
-        return find_subs(str, subobj, start, end, direction);
+        return find_subs(str, function_name, subobj, start, end, direction);
     }
     else if (!PyUnicode_Check(subobj)) {
         PyErr_Format(PyExc_TypeError,
