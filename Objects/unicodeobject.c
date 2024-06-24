@@ -9262,7 +9262,8 @@ find_subs(PyObject *str, const char *function_name,
                 }
             }
             if (result != -1 || chunk_end >= end) {
-                return result; // Found match or searched entire range (guard overflow)
+                // Found match or searched entire range (guard overflow)
+                return result;
             }
             chunk_start = chunk_end + 1;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
@@ -9298,7 +9299,8 @@ find_subs(PyObject *str, const char *function_name,
                 }
             }
             if (result != -1 || chunk_start <= start) {
-                return result; // Found match or searched entire range
+                // Found match or searched entire range
+                return result;
             }
             chunk_end = chunk_start - 1;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
