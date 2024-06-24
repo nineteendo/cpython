@@ -9251,10 +9251,7 @@ find_subs(PyObject *str, const char *function_name,
                                             substr, chunk_start, chunk_end,
                                             end, +1);
                 if (new_result != -1) {
-                    if (new_result == -2) {
-                        return -2;
-                    }
-                    else if (new_result == chunk_start) {
+                    if (new_result == -2 || new_result == chunk_start) {
                         return new_result;
                     }
                     chunk_end = new_result - 1; // Only allow earlier match
@@ -9288,10 +9285,7 @@ find_subs(PyObject *str, const char *function_name,
                                             substr, chunk_start, chunk_end,
                                             end, -1);
                 if (new_result != -1) {
-                    if (new_result == -2) {
-                        return -2;
-                    }
-                    else if (new_result == chunk_end) {
+                    if (new_result == -2 || new_result == chunk_start) {
                         return new_result;
                     }
                     chunk_start = new_result + 1; // Only allow later match
