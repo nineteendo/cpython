@@ -9205,9 +9205,6 @@ find_subs(PyObject *str, const char *function_name,
     int kind1, isascii1;
 
     tuple_len = PyTuple_GET_SIZE(subobj);
-    if (tuple_len == 0) {
-        return -1;
-    }
     for (Py_ssize_t i = 0; i < tuple_len; i++) {
         PyObject *substr = PyTuple_GET_ITEM(subobj, i);
         if (!PyUnicode_Check(substr)) {
@@ -9218,7 +9215,10 @@ find_subs(PyObject *str, const char *function_name,
             return -2;
         }
     }
-    if (tuple_len == 1) {
+    if (tuple_len <= 1) {
+        if (tuple_len == 0) {
+            return -1;
+        }
         PyObject *substr = PyTuple_GET_ITEM(subobj, 0);
         return find_sub(str, substr, start, end, direction);
     }
