@@ -665,7 +665,7 @@ _Py_find_subs(const char *str, Py_ssize_t len,
                 }
                 else if (new_result != -1) {
                     if (new_result == chunk_start) {
-                        return chunk_start;
+                        return new_result;
                     }
                     chunk_end = new_result - 1; // Only allow earlier match
                     result = new_result;
@@ -701,7 +701,7 @@ _Py_find_subs(const char *str, Py_ssize_t len,
                 }
                 else if (new_result != -1) {
                     if (new_result == chunk_end) {
-                        return chunk_end;
+                        return new_result;
                     }
                     chunk_start = new_result + 1; // Only allow later match
                     result = new_result;
