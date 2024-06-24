@@ -9234,7 +9234,7 @@ find_subs(PyObject *str, const char *function_name,
     ADJUST_INDICES(start, end, len1);
     if (direction > 0) {
         Py_ssize_t chunk_start = start;
-        while (result == -1) {
+        while (1) {
             Py_ssize_t chunk_end;
             if (chunk_start >= end - chunk_size) { // Guard overflow
                 chunk_end = end;
@@ -9261,8 +9261,8 @@ find_subs(PyObject *str, const char *function_name,
                     result = new_result;
                 }
             }
-            if (chunk_end >= end) {
-                break; // Searched entire range (guard overflow)
+            if (result != -1 || chunk_end >= end) {
+                return result; // Found match or searched entire range (guard overflow)
             }
             chunk_start = chunk_end + 1;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
@@ -9273,7 +9273,7 @@ find_subs(PyObject *str, const char *function_name,
     }
     else {
         Py_ssize_t chunk_end = end;
-        while (result == -1) {
+        while (1) {
             Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
             if (chunk_start - 1 <= start) {
                 chunk_start = start;
@@ -9297,8 +9297,8 @@ find_subs(PyObject *str, const char *function_name,
                     result = new_result;
                 }
             }
-            if (chunk_start <= start) {
-                break; // Searched entire range
+            if (result != -1 || chunk_start <= start) {
+                return result; // Found match or searched entire range
             }
             chunk_end = chunk_start - 1;
             chunk_size *= FIND_EXP_CHUNK_SIZE;
@@ -9307,7 +9307,6 @@ find_subs(PyObject *str, const char *function_name,
             }
         }
     }
-    return result;
 }
 
 static inline Py_ssize_t
