@@ -628,10 +628,10 @@ _Py_find_subs(const char *str, Py_ssize_t len,
     Py_ssize_t tuple_len, result, chunk_size;
 
     tuple_len = PyTuple_GET_SIZE(subobj);
-    if (tuple_len == 0) {
-        return -1;
-    }
-    else if (tuple_len == 1) {
+    if (tuple_len <= 1) {
+        if (tuple_len == 0) {
+            return -1;
+        }
         PyObject *subseq = PyTuple_GET_ITEM(subobj, 0);
         return _Py_find_sub(str, len, function_name, subseq, start, end,
                             direction);
