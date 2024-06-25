@@ -446,35 +446,16 @@ parse_args_finds_byte(const char *function_name, PyObject **subobj, char *byte)
         start = 0;                      \
     }
 
-Py_LOCAL_INLINE(Py_ssize_t)
-find_internal(const char *str, Py_ssize_t len,
-              const char *function_name, PyObject *subobj,
-              Py_ssize_t start, Py_ssize_t end,
-              int dir)
+static Py_ssize_t
+_Py_fast_find_sub(const char *str, Py_ssize_t len,
+                  const char *sub, Py_ssize_t sub_len,
+                  Py_ssize_t start, Py_ssize_t end,
+                  int dir)
 {
-    char byte;
-    Py_buffer subbuf;
-    const char *sub;
-    Py_ssize_t sub_len;
     Py_ssize_t res;
 
-    if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
-        return -2;
-    }
-
-    if (subobj) {
-        if (PyObject_GetBuffer(subobj, &subbuf, PyBUF_SIMPLE) != 0)
-            return -2;
-
-        sub = subbuf.buf;
-        sub_len = subbuf.len;
-    }
-    else {
-        sub = &byte;
-        sub_len = 1;
-    }
-
-    ADJUST_INDICES(start, end, len);
+    assert(start >= 0);
+    assert(end <= len);
     if (end - start < sub_len)
         res = -1;
     else if (sub_len == 1) {
@@ -500,17 +481,211 @@ find_internal(const char *str, Py_ssize_t len,
                 sub, sub_len, start, end);
     }
 
+    return res;
+}
+
+static Py_ssize_t
+_Py_find_sub(const char *str, Py_ssize_t len,
+             const char *function_name, PyObject *subobj,
+             Py_ssize_t start, Py_ssize_t end,
+             int dir)
+{
+    char byte;
+    Py_buffer subbuf;
+    const char *sub;
+    Py_ssize_t sub_len;
+    Py_ssize_t res;
+
+    if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
+        return -2;
+    }
+
+    if (subobj) {
+        if (PyObject_GetBuffer(subobj, &subbuf, PyBUF_SIMPLE) != 0)
+            return -2;
+
+        sub = subbuf.buf;
+        sub_len = subbuf.len;
+    }
+    else {
+        sub = &byte;
+        sub_len = 1;
+    }
+
+    ADJUST_INDICES(start, end, len);
+    res = _Py_fast_find_sub(str, len, sub, sub_len, start, end, dir);
+
     if (subobj)
         PyBuffer_Release(&subbuf);
 
     return res;
 }
 
+static Py_ssize_t
+_Py_chunk_find_sub(const char *str, Py_ssize_t len,
+                   const char *function_name, PyObject *subobj,
+                   Py_ssize_t chunk_start, Py_ssize_t chunk_end,
+                   Py_ssize_t end, int direction)
+{
+    char byte;
+    Py_buffer subbuf;
+    const char *sub;
+    Py_ssize_t sub_len;
+    Py_ssize_t res;
+
+    assert(chunk_end <= end);
+    if (!parse_args_finds_byte(function_name, &subobj, &byte)) {
+        return -2;
+    }
+
+    if (subobj) {
+        if (PyObject_GetBuffer(subobj, &subbuf, PyBUF_SIMPLE) != 0) {
+            return -2;
+        }
+        sub = subbuf.buf;
+        sub_len = subbuf.len;
+    }
+    else {
+        sub = &byte;
+        sub_len = 1;
+    }
+
+    if (chunk_end >= end - sub_len) { // Guard overflow
+        res = _Py_fast_find_sub(str, len, sub, sub_len, chunk_start, end,
+                                direction);
+    }
+    else {
+        res = _Py_fast_find_sub(str, len, sub, sub_len, chunk_start,
+                                chunk_end + sub_len, direction);
+    }
+
+    if (subobj)
+        PyBuffer_Release(&subbuf);
+
+    return res;
+}
+
+#define FIND_MIN_CHUNK_SIZE 32
+#define FIND_MAX_CHUNK_SIZE 16384
+#define FIND_EXP_CHUNK_SIZE 2
+
+static Py_ssize_t
+_Py_find_subs(const char *str, Py_ssize_t len,
+              const char *function_name, PyObject *subobj,
+              Py_ssize_t start, Py_ssize_t end,
+              int direction)
+{
+    Py_ssize_t tuple_len, result, chunk_size;
+
+    tuple_len = PyTuple_GET_SIZE(subobj);
+    if (tuple_len <= 1) {
+        if (tuple_len == 0) {
+            return -1;
+        }
+        PyObject *subseq = PyTuple_GET_ITEM(subobj, 0);
+        return _Py_find_sub(str, len, function_name, subseq, start, end,
+                            direction);
+    }
+    assert(FIND_MIN_CHUNK_SIZE > 0);
+    assert(FIND_MAX_CHUNK_SIZE >= FIND_MIN_CHUNK_SIZE);
+    assert(FIND_EXP_CHUNK_SIZE >= 1);
+    result = -1;
+    chunk_size = FIND_MIN_CHUNK_SIZE;
+    ADJUST_INDICES(start, end, len);
+    if (direction > 0) {
+        Py_ssize_t chunk_start = start;
+        while (1) {
+            Py_ssize_t chunk_end;
+            if (chunk_start >= end - chunk_size) { // Guard overflow
+                chunk_end = end;
+            }
+            else {
+                chunk_end = chunk_start + chunk_size - 1;
+            }
+            for (Py_ssize_t i = 0; i < tuple_len; i++) {
+                PyObject *subseq;
+                Py_ssize_t new_result;
+
+                subseq = PyTuple_GET_ITEM(subobj, i);
+                new_result = _Py_chunk_find_sub(str, len, function_name,
+                                                subseq, chunk_start, chunk_end,
+                                                end, +1);
+                if (new_result != -1) {
+                    if (new_result == -2 || new_result == chunk_start) {
+                        return new_result;
+                    }
+                    chunk_end = new_result - 1; // Only allow earlier match
+                    result = new_result;
+                }
+            }
+            if (result != -1 || chunk_end >= end) {
+                // Found match or searched entire range (guard overflow)
+                return result;
+            }
+            chunk_start = chunk_end + 1;
+            chunk_size *= FIND_EXP_CHUNK_SIZE;
+            if (chunk_size > FIND_MAX_CHUNK_SIZE) {
+                chunk_size = FIND_MAX_CHUNK_SIZE;
+            }
+        }
+    }
+    else {
+        Py_ssize_t chunk_end = end;
+        while (1) {
+            Py_ssize_t chunk_start = chunk_end - chunk_size + 1;
+            if (chunk_start - 1 <= start) {
+                chunk_start = start;
+            }
+            for (Py_ssize_t i = 0; i < tuple_len; i++) {
+                PyObject *subseq;
+                Py_ssize_t new_result;
+
+                subseq = PyTuple_GET_ITEM(subobj, i);
+                new_result = _Py_chunk_find_sub(str, len, function_name,
+                                                subseq, chunk_start, chunk_end,
+                                                end, -1);
+                if (new_result != -1) {
+                    if (new_result == -2 || new_result == chunk_end) {
+                        return new_result;
+                    }
+                    chunk_start = new_result + 1; // Only allow later match
+                    result = new_result;
+                }
+            }
+            if (result != -1 || chunk_start <= start) {
+                // Found match or searched entire range
+                return result;
+            }
+            chunk_end = chunk_start - 1;
+            chunk_size *= FIND_EXP_CHUNK_SIZE;
+            if (chunk_size > FIND_MAX_CHUNK_SIZE) {
+                chunk_size = FIND_MAX_CHUNK_SIZE;
+            }
+        }
+    }
+}
+
+Py_LOCAL_INLINE(Py_ssize_t)
+find(const char *str, Py_ssize_t len,
+     const char *function_name, PyObject *subobj,
+     Py_ssize_t start, Py_ssize_t end,
+     int direction)
+{
+    if (PyTuple_Check(subobj)) {
+        return _Py_find_subs(str, len, function_name, subobj, start, end,
+                             direction);
+    }
+    else {
+        return _Py_find_sub(str, len, function_name, subobj, start, end,
+                            direction);
+    }
+}
+
 PyObject *
 _Py_bytes_find(const char *str, Py_ssize_t len, PyObject *sub,
                Py_ssize_t start, Py_ssize_t end)
 {
-    Py_ssize_t result = find_internal(str, len, "find", sub, start, end, +1);
+    Py_ssize_t result = find(str, len, "find", sub, start, end, +1);
     if (result == -2)
         return NULL;
     return PyLong_FromSsize_t(result);
@@ -520,7 +695,7 @@ PyObject *
 _Py_bytes_index(const char *str, Py_ssize_t len, PyObject *sub,
                 Py_ssize_t start, Py_ssize_t end)
 {
-    Py_ssize_t result = find_internal(str, len, "index", sub, start, end, +1);
+    Py_ssize_t result = find(str, len, "index", sub, start, end, +1);
     if (result == -2)
         return NULL;
     if (result == -1) {
@@ -535,7 +710,7 @@ PyObject *
 _Py_bytes_rfind(const char *str, Py_ssize_t len, PyObject *sub,
                 Py_ssize_t start, Py_ssize_t end)
 {
-    Py_ssize_t result = find_internal(str, len, "rfind", sub, start, end, -1);
+    Py_ssize_t result = find(str, len, "rfind", sub, start, end, -1);
     if (result == -2)
         return NULL;
     return PyLong_FromSsize_t(result);
@@ -545,7 +720,7 @@ PyObject *
 _Py_bytes_rindex(const char *str, Py_ssize_t len, PyObject *sub,
                  Py_ssize_t start, Py_ssize_t end)
 {
-    Py_ssize_t result = find_internal(str, len, "rindex", sub, start, end, -1);
+    Py_ssize_t result = find(str, len, "rindex", sub, start, end, -1);
     if (result == -2)
         return NULL;
     if (result == -1) {

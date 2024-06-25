@@ -75,7 +75,8 @@ New Features
 Other Language Changes
 ======================
 
-
+* Support tuples for :class:`str`, :class:`bytes` and :class:`bytearray` methods ``find()``, ``index()``, ``rfind()`` and ``rindex()``.
+  (Contributed by Wannes Boeykens in ``gh-???``.)
 
 New Modules
 ===========

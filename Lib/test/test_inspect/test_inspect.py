@@ -5642,7 +5642,7 @@ class TestSignatureDefinitions(unittest.TestCase):
             'bytes': {'count', 'endswith', 'find', 'hex', 'index', 'rfind', 'rindex', 'startswith'},
             'dict': {'pop'},
             'memoryview': {'cast', 'hex'},
-            'str': {'count', 'endswith', 'find', 'index', 'maketrans', 'rfind', 'rindex', 'startswith'},
+            'str': {'count', 'endswith', 'maketrans', 'startswith'},
         }
         self._test_module_has_signatures(builtins,
                 no_signature, unsupported_signature,
@@ -5817,7 +5817,7 @@ class TestSignatureDefinitions(unittest.TestCase):
             'Generic': {'__class_getitem__', '__init_subclass__'},
         }
         methods_unsupported_signature = {
-            'Text': {'count', 'find', 'index', 'rfind', 'rindex', 'startswith', 'endswith', 'maketrans'},
+            'Text': {'count', 'startswith', 'endswith', 'maketrans'},
         }
         self._test_module_has_signatures(typing, no_signature,
                 methods_no_signature=methods_no_signature,

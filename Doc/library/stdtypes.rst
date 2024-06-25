@@ -1724,8 +1724,13 @@ expression support in the :mod:`re` module).
 .. method:: str.find(sub[, start[, end]])
 
    Return the lowest index in the string where substring *sub* is found within
-   the slice ``s[start:end]``.  Optional arguments *start* and *end* are
-   interpreted as in slice notation.  Return ``-1`` if *sub* is not found.
+   the slice ``s[start:end]``.  *sub* can also be a tuple of substrings to look
+   for.  In this case the returned index, if found, will be the index of the
+   first match.  Optional arguments *start* and *end* are interpreted as in
+   slice notation.  Return ``-1`` if *sub* is not found.
+
+   .. seealso::
+      The :mod:`re` module, which provides advanced pattern matching.
 
    .. note::
 
@@ -1735,6 +1740,9 @@ expression support in the :mod:`re` module).
 
          >>> 'Py' in 'Python'
          True
+
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of substrings.
 
 
 .. method:: str.format(*args, **kwargs)
@@ -1788,6 +1796,9 @@ expression support in the :mod:`re` module).
 
    Like :meth:`~str.find`, but raise :exc:`ValueError` when the substring is
    not found.
+
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of substrings.
 
 
 .. method:: str.isalnum()
@@ -2030,14 +2041,25 @@ expression support in the :mod:`re` module).
 .. method:: str.rfind(sub[, start[, end]])
 
    Return the highest index in the string where substring *sub* is found, such
-   that *sub* is contained within ``s[start:end]``.  Optional arguments *start*
-   and *end* are interpreted as in slice notation.  Return ``-1`` on failure.
+   that *sub* is contained within ``s[start:end]``.  *sub* can also be a tuple
+   of substrings to look for.  In this case the returned index, if found, will
+   be the index of the last match.  Optional arguments *start* and *end* are
+   interpreted as in slice notation.  Return ``-1`` on failure.
+
+   .. seealso::
+      The third-party :pypi:`regex` module, which provides advanced pattern matching.
+
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of substrings.
 
 
 .. method:: str.rindex(sub[, start[, end]])
 
    Like :meth:`rfind` but raises :exc:`ValueError` when the substring *sub* is not
    found.
+
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of substrings.
 
 
 .. method:: str.rjust(width[, fillchar])
@@ -2859,12 +2881,17 @@ arbitrary binary data.
             bytearray.find(sub[, start[, end]])
 
    Return the lowest index in the data where the subsequence *sub* is found,
-   such that *sub* is contained in the slice ``s[start:end]``.  Optional
-   arguments *start* and *end* are interpreted as in slice notation.  Return
-   ``-1`` if *sub* is not found.
+   such that *sub* is contained in the slice ``s[start:end]``.  *sub* can
+   also be a tuple of subsequences to look for.  In this case the returned
+   index, if found, will be the index of the first match.  Optional arguments
+   *start* and *end* are interpreted as in slice notation.  Return ``-1`` if
+   *sub* is not found.
 
    The subsequence to search for may be any :term:`bytes-like object` or an
    integer in the range 0 to 255.
+
+   .. seealso::
+      The :mod:`re` module, which provides advanced pattern matching.
 
    .. note::
 
@@ -2878,6 +2905,9 @@ arbitrary binary data.
    .. versionchanged:: 3.3
       Also accept an integer in the range 0 to 255 as the subsequence.
 
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of subsequences.
+
 
 .. method:: bytes.index(sub[, start[, end]])
             bytearray.index(sub[, start[, end]])
@@ -2890,6 +2920,9 @@ arbitrary binary data.
 
    .. versionchanged:: 3.3
       Also accept an integer in the range 0 to 255 as the subsequence.
+
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of subsequences.
 
 
 .. method:: bytes.join(iterable)
@@ -2947,15 +2980,23 @@ arbitrary binary data.
             bytearray.rfind(sub[, start[, end]])
 
    Return the highest index in the sequence where the subsequence *sub* is
-   found, such that *sub* is contained within ``s[start:end]``.  Optional
-   arguments *start* and *end* are interpreted as in slice notation. Return
-   ``-1`` on failure.
+   found, such that *sub* is contained within ``s[start:end]``.  *sub* can
+   also be a tuple of subsequences to look for.  In this case the returned
+   index, if found, will be the index of the last match.  Optional arguments
+   *start* and *end* are interpreted as in slice notation.  Return ``-1`` on
+   failure.
 
    The subsequence to search for may be any :term:`bytes-like object` or an
    integer in the range 0 to 255.
 
+   .. seealso::
+      The third-party :pypi:`regex` module, which provides advanced pattern matching.
+
    .. versionchanged:: 3.3
       Also accept an integer in the range 0 to 255 as the subsequence.
+
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of subsequences.
 
 
 .. method:: bytes.rindex(sub[, start[, end]])
@@ -2969,6 +3010,9 @@ arbitrary binary data.
 
    .. versionchanged:: 3.3
       Also accept an integer in the range 0 to 255 as the subsequence.
+
+   .. versionchanged:: 3.14
+      *sub* can now be a tuple of subsequences.
 
 
 .. method:: bytes.rpartition(sep)
