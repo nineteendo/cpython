@@ -410,7 +410,7 @@ append_ast_frozenset(_PyUnicodeWriter *writer, expr_ty e)
     if (elem_count == 0) {
         APPEND_STR_FINISH("{{/}}");
     }
-    
+
     APPEND_STR("{{");
 
     for (i = 0; i < elem_count; i++) {
