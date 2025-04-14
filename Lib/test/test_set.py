@@ -1009,7 +1009,7 @@ class TestBasicOpsFrozenSet1(TestBasicOps, unittest.TestCase):
         self.set    = set(self.values)
         self.dup    = set(self.values)
         self.length = 1
-        self.repr   = "{ {{3}} }"
+        self.repr   = "{{{3}}}"
 
 class TestBasicOpsFrozenSet2(TestBasicOps, unittest.TestCase):
     def setUp(self):

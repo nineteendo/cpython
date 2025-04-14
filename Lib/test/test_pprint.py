@@ -655,7 +655,7 @@ frozenset2({{0,
         fs2 = frozenset(('one', 'two'))
         data = {fs2: frozenset((fs0, fs1))}
         self.assertEqual(pprint.pformat(data),
-                         "{ %r: {{%r, %r}} }" % (fs2, fs0, fs1))
+                         "{%r: {{%r, %r}}}" % (fs2, fs0, fs1))
         self.assertEqual(pprint.pformat(data), repr(data))
 
         # Single-line, unordered:
@@ -675,12 +675,12 @@ frozenset2({{0,
             pprint.pformat({fs1, fs2}, width=60),
             [
                 """
-                { %r,
-                  %r }
+                {%r,
+                 %r}
                 """ % (fs1, fs2),
                 """
-                { %r,
-                  %r }
+                {%r,
+                 %r}
                 """ % (fs2, fs1),
             ],
         )
@@ -715,31 +715,31 @@ frozenset2({{0,
             ),
             [
                 """
-                { {{'abcd is even longer that before',
-                    'spam is not so long'}},
-                  {{'qwerty is also absurdly long',
-                    'xyz very-very long string'}} }
+                {{{'abcd is even longer that before',
+                   'spam is not so long'}},
+                 {{'qwerty is also absurdly long',
+                   'xyz very-very long string'}}}
                 """,
 
                 """
-                { {{'abcd is even longer that before',
-                    'spam is not so long'}},
-                  {{'xyz very-very long string',
-                    'qwerty is also absurdly long'}} }
+                {{{'abcd is even longer that before',
+                   'spam is not so long'}},
+                 {{'xyz very-very long string',
+                   'qwerty is also absurdly long'}}}
                 """,
 
                 """
-                { {{'qwerty is also absurdly long',
-                    'xyz very-very long string'}},
-                  {{'abcd is even longer that before',
-                    'spam is not so long'}} }
+                {{{'qwerty is also absurdly long',
+                   'xyz very-very long string'}},
+                 {{'abcd is even longer that before',
+                   'spam is not so long'}}}
                 """,
 
                 """
-                { {{'qwerty is also absurdly long',
-                    'xyz very-very long string'}},
-                  {{'spam is not so long',
-                    'abcd is even longer that before'}} }
+                {{{'qwerty is also absurdly long',
+                   'xyz very-very long string'}},
+                 {{'spam is not so long',
+                   'abcd is even longer that before'}}}
                 """,
             ],
         )

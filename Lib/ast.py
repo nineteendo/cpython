@@ -1300,11 +1300,7 @@ class _Unparser(NodeVisitor):
 
     def visit_SetComp(self, node):
         with self.delimit("{", "}"):
-            expr = type(self)().visit(node.elt)
-            if expr.startswith("{"):
-                # Separate pair of opening brackets as "{ {"
-                self.write(" ")
-            self.write(expr)
+            self.traverse(node.elt)
             for gen in node.generators:
                 self.traverse(gen)
 
@@ -1316,11 +1312,7 @@ class _Unparser(NodeVisitor):
 
     def visit_DictComp(self, node):
         with self.delimit("{", "}"):
-            expr = type(self)().visit(node.key)
-            if expr.startswith("{"):
-                # Separate pair of opening brackets as "{ {"
-                self.write(" ")
-            self.write(expr)
+            self.traverse(node.key)
             self.write(": ")
             self.traverse(node.value)
             for gen in node.generators:
@@ -1353,14 +1345,7 @@ class _Unparser(NodeVisitor):
     def visit_Set(self, node):
         if node.elts:
             with self.delimit("{", "}"):
-                expr = type(self)().visit(node.elts[0])
-                if expr.startswith("{"):
-                    # Separate pair of opening brackets as "{ {"
-                    self.write(" ")
-                self.write(expr)
-                for key in node.elts[1:]:
-                    self.write(", ")
-                    self.traverse(key)
+                self.interleave(lambda: self.write(", "), self.traverse, node.elts)
         else:
             self.write('{/}')
 
@@ -1389,22 +1374,9 @@ class _Unparser(NodeVisitor):
                 write_key_value_pair(k, v)
 
         with self.delimit("{", "}"):
-            if node.keys:
-                k, v = node.keys[0], node.values[0]
-                if k is None:
-                    write_item((k, v))
-                else:
-                    expr = type(self)().visit(k)
-                    if expr.startswith("{"):
-                        # Separate pair of opening brackets as "{ {"
-                        self.write(" ")
-                    self.write(expr)
-                    self.write(": ")
-                    self.traverse(v)
-
-                for item in zip(node.keys[1:], node.values[1:]):
-                    self.write(", ")
-                    write_item(item)
+            self.interleave(
+                lambda: self.write(", "), write_item, zip(node.keys, node.values)
+            )
 
     def visit_Tuple(self, node):
         with self.delimit_if(
@@ -1715,18 +1687,11 @@ class _Unparser(NodeVisitor):
 
         with self.delimit("{", "}"):
             keys = node.keys
-            if keys:
-                expr = type(self)().visit(keys[0])
-                if expr.startswith("{"):
-                    # Separate pair of opening brackets as "{ {"
-                    self.write(" ")
-                self.write(expr)
-                self.write(": ")
-                self.traverse(node.patterns[0])
-
-            for pair in zip(keys[1:], node.patterns[1:], strict=True):
-                self.write(", ")
-                write_key_pattern_pair(pair)
+            self.interleave(
+                lambda: self.write(", "),
+                write_key_pattern_pair,
+                zip(keys, node.patterns, strict=True),
+            )
 
             rest = node.rest
             if rest is not None:

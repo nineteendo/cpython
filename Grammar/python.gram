@@ -844,7 +844,7 @@ atom[expr_ty]:
     | NUMBER
     | &'(' (tuple | group | genexp)
     | &'[' (list | listcomp)
-    | &('{' '{') !('{' '{' (dict | set | dictcomp | setcomp) '}' '}') (frozenset | frozensetcomp)
+    | &('{' '{') !invalid_frozenset (frozenset | frozensetcomp)
     | &'{' (dict | set | dictcomp | setcomp)
     | '...' { _PyAST_Constant(Py_Ellipsis, NULL, EXTRA) }
 
@@ -941,9 +941,14 @@ tuple[expr_ty]:
 set[expr_ty]:
     | '{' a=star_named_expressions '}' { _PyAST_Set(a, EXTRA) }
     | '{' '/' '}' { _PyAST_Set(NULL, EXTRA) }
+
 frozenset[expr_ty]:
     | '{' '{' a=star_named_expressions '}' '}' { _PyAST_FrozenSet(a, EXTRA) }
     | '{' '{' '/' '}' '}' { _PyAST_FrozenSet(NULL, EXTRA) }
+
+invalid_frozenset:
+    | '{' '{' ~ invalid_frozenset '}' '}'
+    | (dict | set | dictcomp | setcomp)
 
 # Dicts
 # -----

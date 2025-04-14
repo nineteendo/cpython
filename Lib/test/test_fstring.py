@@ -674,8 +674,6 @@ x = (
         self.assertEqual(f'}}{{{10}', '}{10')
         self.assertEqual(f'}}a{{{10}', '}a{10')
 
-        self.assertEqual(f'{{{10}}}', '{10}')
-
         self.assertEqual(f'{10}{{', '10{')
         self.assertEqual(f'{10}}}', '10}')
         self.assertEqual(f'{10}}}{{', '10}{')
@@ -684,10 +682,8 @@ x = (
         # Inside of strings, don't interpret doubled brackets.
         self.assertEqual(f'{"{{}}"}', '{{}}')
 
-        self.assertEqual(f'{ {{10}} }', '{{10}}')
-        self.assertAllRaise(SyntaxError,
-                            "f-string: expecting a valid expression after '{'",
-                            ["f'{ {{}} }'", # invalid syntax
+        self.assertAllRaise(TypeError, 'unhashable type',
+                            ["f'{ {{}} }'", # dict in a set
                              ])
 
     def test_compile_time_concat(self):
@@ -1428,7 +1424,7 @@ x = (
                              ])
 
         self.assertAllRaise(SyntaxError,
-                            "f-string: expecting '}', or format specs",
+                            "f-string: expecting a valid expression after '{'",
                             ["f'{3:{{>10}'",
                              ])
 

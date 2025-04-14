@@ -501,15 +501,6 @@ curly braces or the :func:`frozenset` function can be used to create them::
    To create an empty frozen set you have to use ``{{/}}``, not ``{{}}``; the
    latter is reserved for an empty frozen dictionary.
 
-.. note::
-   To use a frozen set as the first element of a set or in a set
-   comprehension, you need to add whitespace::
-
-      >>> { {{3}}, {{2}}, {{1}} }
-      { {{3}}, {{2}}, {{1}} }
-      >>> { {{c}} for c in 'cba' }
-      { {{'c'}}, {{'b'}}, {{'a'}} }
-
 Like sets, comprehensions are also supported::
 
    >>> a = {{x for x in 'abracadabra' if x not in 'abc'}}
@@ -569,15 +560,6 @@ Here is a small example using a dictionary::
    True
    >>> 'jack' not in tel
    False
-
-.. note::
-   To use a frozen set as the first key or as the key in a comprehension,
-   you need to add whitespace::
-
-      >>> { {{1}}: 1, {{2}}: 2, {{3}}: 3 }
-      { {{1}}: 1, {{2}}: 2, {{3}}: 3 }
-      >>> { {{c}}: c for c in 'abc' }
-      { {{'a'}}: 'a', {{'b'}}: 'b', {{'c'}}: 'c' }
 
 The :func:`dict` constructor builds dictionaries directly from sequences of
 key-value pairs::

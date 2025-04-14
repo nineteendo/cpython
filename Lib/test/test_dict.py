@@ -585,10 +585,6 @@ class DictTest(unittest.TestCase):
         d[1] = d
         self.assertEqual(repr(d), '{1: {...}}')
 
-        self.assertEqual(repr({1: {{1}}}),       '{1: {{1}}}')
-        self.assertEqual(repr({ {{1}}: 1 }),     '{ {{1}}: 1 }')
-        self.assertEqual(repr({ {{1}}: {{1}} }), '{ {{1}}: {{1}} }')
-
         class Exc(Exception): pass
 
         class BadRepr(object):

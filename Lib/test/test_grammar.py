@@ -1642,13 +1642,19 @@ class GrammarTests(unittest.TestCase):
 
     def test_frozenset(self):
         # frozenset tests
-        self.assertEqual({{1, 2, 3}},         frozenset({1, 2, 3}))
-        self.assertEqual({ {{1, 2, 3}} },     {frozenset({1, 2, 3})})
-        self.assertEqual({{{{1, 2, 3}}}},     frozenset({frozenset({1, 2, 3})}))
-        self.assertEqual({ {{{{1, 2, 3}}}} }, {frozenset({frozenset({1, 2, 3})})})
+        self.assertEqual({{1, 2, 3}},           frozenset({1, 2, 3}))
+        self.assertEqual({{{1, 2, 3}}},         {frozenset({1, 2, 3})})
+        self.assertEqual({{{{1, 2, 3}}}},       frozenset({frozenset({1, 2, 3})}))
+        self.assertEqual({{{{{1, 2, 3}}}}},     {frozenset({frozenset({1, 2, 3})})})
+        self.assertEqual({{{{{{1, 2, 3}}}}}},   frozenset({frozenset({frozenset({1, 2, 3})})}))
+        self.assertEqual({{{{{{{1, 2, 3}}}}}}}, {frozenset({frozenset({frozenset({1, 2, 3})})})})
 
-        self.assertEqual({1: {{1, 2, 3}}},   {1: frozenset({1, 2, 3})})
-        self.assertEqual({ {{1, 2, 3}}: 1 }, {frozenset({1, 2, 3}): 1})
+        self.assertEqual({{c for c in "abc"}},           frozenset(c for c in "abc"))
+        self.assertEqual({{{c for c in "abc"}}},         {frozenset(c for c in "abc")})
+        self.assertEqual({{{{c for c in "abc"}}}},       frozenset({frozenset(c for c in "abc")}))
+        self.assertEqual({{{{{c for c in "abc"}}}}},     {frozenset({frozenset(c for c in "abc")})})
+        self.assertEqual({{{{{{c for c in "abc"}}}}}},   frozenset({frozenset({frozenset(c for c in "abc")})}))
+        self.assertEqual({{{{{{{c for c in "abc"}}}}}}}, {frozenset({frozenset({frozenset(c for c in "abc")})})})
 
     def test_classdef(self):
         # 'class' NAME ['(' [testlist] ')'] ':' suite
