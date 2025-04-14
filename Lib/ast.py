@@ -1362,18 +1362,14 @@ class _Unparser(NodeVisitor):
                     self.write(", ")
                     self.traverse(key)
         else:
-            # `{}` would be interpreted as a dictionary literal, and
-            # `set` might be shadowed. Thus:
-            self.write('{*()}')
+            self.write('{/}')
 
     def visit_FrozenSet(self, node):
         if node.elts:
             with self.delimit("{{", "}}"):
                 self.interleave(lambda: self.write(", "), self.traverse, node.elts)
         else:
-            # `{{}}` is reserved for an empty frozen dictionary, and
-            # `frozenset` might be shadowed. Thus:
-            self.write('{{*()}}')
+            self.write('{{/}}')
 
     def visit_Dict(self, node):
         def write_key_value_pair(k, v):

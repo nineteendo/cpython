@@ -241,8 +241,12 @@ eval_tests = [
   "{}",
   # Set
   "{None,}",
+  # Empty set
+  "{/}",
   # Frozenset
   "{{None,}}",
+  # Empty frozenset
+  "{{/}}",
   # Multiline dict (test for .lineno & .col_offset)
   """{
       1
@@ -3080,7 +3084,9 @@ eval_results = [
 ('Expression', ('Dict', (1, 0, 1, 7), [('Constant', (1, 2, 1, 3), 1, None)], [('Constant', (1, 4, 1, 5), 2, None)])),
 ('Expression', ('Dict', (1, 0, 1, 2), [], [])),
 ('Expression', ('Set', (1, 0, 1, 7), [('Constant', (1, 1, 1, 5), None, None)])),
+('Expression', ('Set', (1, 0, 1, 3), [])),
 ('Expression', ('FrozenSet', (1, 0, 1, 9), [('Constant', (1, 2, 1, 6), None, None)])),
+('Expression', ('FrozenSet', (1, 0, 1, 5), [])),
 ('Expression', ('Dict', (1, 0, 5, 6), [('Constant', (2, 6, 2, 7), 1, None)], [('Constant', (4, 10, 4, 11), 2, None)])),
 ('Expression', ('ListComp', (1, 0, 1, 19), ('Name', (1, 1, 1, 2), 'a', ('Load',)), [('comprehension', ('Name', (1, 7, 1, 8), 'b', ('Store',)), ('Name', (1, 12, 1, 13), 'c', ('Load',)), [('Name', (1, 17, 1, 18), 'd', ('Load',))], 0)])),
 ('Expression', ('GeneratorExp', (1, 0, 1, 19), ('Name', (1, 1, 1, 2), 'a', ('Load',)), [('comprehension', ('Name', (1, 7, 1, 8), 'b', ('Store',)), ('Name', (1, 12, 1, 13), 'c', ('Load',)), [('Name', (1, 17, 1, 18), 'd', ('Load',))], 0)])),

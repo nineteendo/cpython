@@ -118,13 +118,13 @@ class Repr:
 
     def repr_set(self, x, level):
         if not x:
-            return 'set()'
+            return '{/}'
         x = _possibly_sorted(x)
         return self._repr_iterable(x, level, '{', '}', self.maxset)
 
     def repr_frozenset(self, x, level):
         if not x:
-            return 'frozenset()'
+            return '{{/}}'
         x = _possibly_sorted(x)
         return self._repr_iterable(x, level, '{{', '}}',
                                    self.maxfrozenset)

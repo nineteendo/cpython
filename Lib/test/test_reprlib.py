@@ -102,14 +102,14 @@ class ReprTests(unittest.TestCase):
         eq(r([1, 2, 3, 4, 5, 6, 7]), "[1, 2, 3, 4, 5, 6, ...]")
 
         # Sets give up after 6 as well
-        eq(r(set([])), "set()")
+        eq(r(set([])), "{/}")
         eq(r(set([1])), "{1}")
         eq(r(set([1, 2, 3])), "{1, 2, 3}")
         eq(r(set([1, 2, 3, 4, 5, 6])), "{1, 2, 3, 4, 5, 6}")
         eq(r(set([1, 2, 3, 4, 5, 6, 7])), "{1, 2, 3, 4, 5, 6, ...}")
 
         # Frozensets give up after 6 as well
-        eq(r(frozenset([])), "frozenset()")
+        eq(r(frozenset([])), "{{/}}")
         eq(r(frozenset([1])), "{{1}}")
         eq(r(frozenset([1, 2, 3])), "{{1, 2, 3}}")
         eq(r(frozenset([1, 2, 3, 4, 5, 6])), "{{1, 2, 3, 4, 5, 6}}")

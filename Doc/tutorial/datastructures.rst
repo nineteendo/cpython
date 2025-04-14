@@ -451,7 +451,7 @@ eliminating duplicate entries.  Set objects also support mathematical operations
 like union, intersection, difference, and symmetric difference.
 
 Curly braces or the :func:`set` function can be used to create sets.  Note: to
-create an empty set you have to use ``set()``, not ``{}``; the latter creates an
+create an empty set you have to use ``{/}``, not ``{}``; the latter creates an
 empty dictionary, a data structure that we discuss in the next section.
 
 Here is a brief demonstration::
@@ -498,8 +498,8 @@ curly braces or the :func:`frozenset` function can be used to create them::
    {{'f', 'r', 'a', 'b', 'o'}}
 
 .. note::
-   To create an empty frozen set you have to use ``frozenset()``, not
-   ``{{}}``; the latter is reserved for an empty frozen dictionary.
+   To create an empty frozen set you have to use ``{{/}}``, not ``{{}}``; the
+   latter is reserved for an empty frozen dictionary.
 
 .. note::
    To use a frozen set as the first element of a set or in a set

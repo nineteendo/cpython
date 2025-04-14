@@ -278,7 +278,7 @@ A set display is denoted by curly braces and distinguishable from dictionary
 displays by the lack of colons separating keys and values:
 
 .. productionlist:: python-grammar
-   set_display: "{" (`starred_list` | `comprehension`) "}"
+   set_display: "{" (`starred_list` | "/" | `comprehension`) "}"
 
 A set display yields a new mutable set object, the contents being specified by
 either a sequence of expressions or a comprehension.  When a comma-separated
@@ -286,8 +286,8 @@ list of expressions is supplied, its elements are evaluated from left to right
 and added to the set object.  When a comprehension is supplied, the set is
 constructed from the elements resulting from the comprehension.
 
-An empty set cannot be constructed with ``{}``; this literal constructs an empty
-dictionary.
+An empty set is constructed with ``{/}``, not ``{}``; the latter constructs an
+empty dictionary.
 
 
 .. _frozenset:
@@ -305,7 +305,7 @@ Frozen set displays
 A frozen set display is denoted by double curly braces:
 
 .. productionlist:: python-grammar
-   frozenset_display: "{{" (`starred_list` | `comprehension`) "}}"
+   frozenset_display: "{{" (`starred_list` | "/" | `comprehension`) "}}"
 
 A frozen set display yields a new immutable set object, the contents being
 specified by either a sequence of expressions or a comprehension.  When a
@@ -314,7 +314,7 @@ from left to right and added to the frozenset object.  When a comprehension
 is supplied, the frozen set is constructed from the elements resulting from
 the comprehension.
 
-An empty frozen set cannot be constructed with ``{{}}``; this literal is
+An empty frozen set is constructed with ``{{/}}``, not ``{{}}``; the latter is
 reserved for an empty frozen dictionary.
 
 

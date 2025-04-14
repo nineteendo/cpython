@@ -368,9 +368,13 @@ append_ast_set(_PyUnicodeWriter *writer, expr_ty e)
 {
     Py_ssize_t i, elem_count;
 
-    APPEND_STR("{");
     elem_count = asdl_seq_LEN(e->v.Set.elts);
-    assert(elem_count > 0);
+
+    if (elem_count == 0) {
+        APPEND_STR_FINISH("{/}");
+    }
+
+    APPEND_STR("{");
 
     PyObject *temp_fv_str = expr_as_unicode(
         (expr_ty)asdl_seq_GET(e->v.Set.elts, 0), PR_TEST);
@@ -401,8 +405,14 @@ append_ast_frozenset(_PyUnicodeWriter *writer, expr_ty e)
 {
     Py_ssize_t i, elem_count;
 
-    APPEND_STR("{{");
     elem_count = asdl_seq_LEN(e->v.FrozenSet.elts);
+
+    if (elem_count == 0) {
+        APPEND_STR_FINISH("{{/}}");
+    }
+    
+    APPEND_STR("{{");
+
     for (i = 0; i < elem_count; i++) {
         APPEND_STR_IF(i > 0, ", ");
         APPEND_EXPR((expr_ty)asdl_seq_GET(e->v.FrozenSet.elts, i), PR_TEST);

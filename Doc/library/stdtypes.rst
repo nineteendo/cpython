@@ -58,8 +58,8 @@ objects considered false:
 * zero of any numeric type: ``0``, ``0.0``, ``0j``, ``Decimal(0)``,
   ``Fraction(0, 1)``
 
-* empty sequences and collections: ``''``, ``()``, ``[]``, ``{}``, ``set()``,
-  ``frozenset()``, ``range(0)``
+* empty sequences and collections: ``''``, ``()``, ``[]``, ``{}``, ``{/}``,
+  ``{{/}}``, ``range(0)``
 
 .. index::
    pair: operator; or
@@ -4265,12 +4265,14 @@ The constructors for both classes work the same:
 
    Sets can be created by several means:
 
+   * Use a slash within braces for an empty set: ``{/}``
    * Use a comma-separated list of elements within braces: ``{'jack', 'sjoerd'}``
    * Use a set comprehension: ``{c for c in 'abracadabra' if c not in 'abc'}``
    * Use the type constructor: ``set()``, ``set('foobar')``, ``set(['a', 'b', 'foo'])``
 
    You can do the same for frozen sets:
 
+   * Use a slash within double braces for an empty set: ``{{/}}``
    * Use a comma-separated list of elements within double braces: ``{{'jack', 'sjoerd'}}``
    * Use a frozen set comprehension: ``{{c for c in 'abracadabra' if c not in 'abc'}}``
    * Use the type constructor: ``frozenset()``, ``frozenset('foobar')``,

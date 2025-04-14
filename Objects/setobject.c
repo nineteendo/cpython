@@ -540,7 +540,12 @@ set_repr_lock_held(PySetObject *so)
     /* shortcut for the empty set */
     if (!so->used) {
         Py_ReprLeave((PyObject*)so);
-        return PyUnicode_FromFormat("%s()", Py_TYPE(so)->tp_name);
+        if (PySet_CheckExact(so))
+            return PyUnicode_FromString("{/}");
+        else if (PyFrozenSet_CheckExact(so))
+            return PyUnicode_FromString("{{/}}");
+        else
+            return PyUnicode_FromFormat("%s()", Py_TYPE(so)->tp_name);
     }
 
     keys = PySequence_List((PyObject *)so);

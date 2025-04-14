@@ -576,7 +576,7 @@ dataclass5(a=dataclass6(c=...,
         self.assertEqual(dotted_printer.pformat(o2), exp2)
 
     def test_set_reprs(self):
-        self.assertEqual(pprint.pformat(set()), 'set()')
+        self.assertEqual(pprint.pformat(set()), '{/}')
         self.assertEqual(pprint.pformat(set(range(3))), '{0, 1, 2}')
         self.assertEqual(pprint.pformat(set(range(7)), width=20), '''\
 {0,
@@ -597,7 +597,7 @@ set2({{0,
         self.assertEqual(pprint.pformat(set3(range(7)), width=20),
                          'set3({{0, 1, 2, 3, 4, 5, 6}})')
 
-        self.assertEqual(pprint.pformat(frozenset()), 'frozenset()')
+        self.assertEqual(pprint.pformat(frozenset()), '{{/}}')
         self.assertEqual(pprint.pformat(frozenset(range(3))),
                          '{{0, 1, 2}}')
         self.assertEqual(pprint.pformat(frozenset(range(7)), width=20), '''\

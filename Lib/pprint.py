@@ -254,10 +254,13 @@ class PrettyPrinter:
     _dispatch[tuple.__repr__] = _pprint_tuple
 
     def _pprint_set(self, object, stream, indent, allowance, context, level):
-        if not len(object):
-            stream.write(repr(object))
-            return
         typ = object.__class__
+        if not len(object):
+            if typ is set:
+                stream.write('{/}')
+            else:
+                stream.write(repr(object))
+            return
         object = sorted(object, key=_safe_key)
         if typ is set:
             stream.write('{')
@@ -278,10 +281,13 @@ class PrettyPrinter:
     _dispatch[set.__repr__] = _pprint_set
 
     def _pprint_frozenset(self, object, stream, indent, allowance, context, level):
-        if not len(object):
-            stream.write(repr(object))
-            return
         typ = object.__class__
+        if not len(object):
+            if typ is frozenset:
+                stream.write('{{/}}')
+            else:
+                stream.write(repr(object))
+            return
         object = sorted(object, key=_safe_key)
         if typ is frozenset:
             stream.write('{{')
