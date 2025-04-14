@@ -553,8 +553,8 @@ set_repr_lock_held(PySetObject *so)
         goto done;
 
     /* repr(keys)[1:-1] */
-    Py_DECREF(keys);
     listrepr = PyObject_Repr(keys);
+    Py_DECREF(keys);
     if (listrepr == NULL)
         goto done;
     tmp = PyUnicode_Substring(listrepr, 1, PyUnicode_GET_LENGTH(listrepr)-1);
