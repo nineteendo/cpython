@@ -300,6 +300,10 @@ SyntaxError: did you forget parentheses around the comprehension target?
 Traceback (most recent call last):
 SyntaxError: did you forget parentheses around the comprehension target?
 
+>>> {{x,y for x,y in range(100)}}
+Traceback (most recent call last):
+SyntaxError: did you forget parentheses around the comprehension target?
+
 # Missing commas in literals collections should not
 # produce special error messages regarding missing
 # parentheses, but about missing commas instead
