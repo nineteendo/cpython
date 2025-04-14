@@ -16615,7 +16615,7 @@ tuple_rule(Parser *p)
     return _res;
 }
 
-// set: '{' star_named_expressions '}'
+// set: '{' star_named_expressions '}' | '{' '/' '}'
 static expr_ty
 set_rule(Parser *p)
 {
@@ -16676,13 +16676,52 @@ set_rule(Parser *p)
         D(fprintf(stderr, "%*c%s set[%d-%d]: %s failed!\n", p->level, ' ',
                   p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'{' star_named_expressions '}'"));
     }
+    { // '{' '/' '}'
+        if (p->error_indicator) {
+            p->level--;
+            return NULL;
+        }
+        D(fprintf(stderr, "%*c> set[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'{' '/' '}'"));
+        Token * _literal;
+        Token * _literal_1;
+        Token * _literal_2;
+        if (
+            (_literal = _PyPegen_expect_token(p, 25))  // token='{'
+            &&
+            (_literal_1 = _PyPegen_expect_token(p, 17))  // token='/'
+            &&
+            (_literal_2 = _PyPegen_expect_token(p, 26))  // token='}'
+        )
+        {
+            D(fprintf(stderr, "%*c+ set[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'{' '/' '}'"));
+            Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
+            if (_token == NULL) {
+                p->level--;
+                return NULL;
+            }
+            int _end_lineno = _token->end_lineno;
+            UNUSED(_end_lineno); // Only used by EXTRA macro
+            int _end_col_offset = _token->end_col_offset;
+            UNUSED(_end_col_offset); // Only used by EXTRA macro
+            _res = _PyAST_Set ( NULL , EXTRA );
+            if (_res == NULL && PyErr_Occurred()) {
+                p->error_indicator = 1;
+                p->level--;
+                return NULL;
+            }
+            goto done;
+        }
+        p->mark = _mark;
+        D(fprintf(stderr, "%*c%s set[%d-%d]: %s failed!\n", p->level, ' ',
+                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'{' '/' '}'"));
+    }
     _res = NULL;
   done:
     p->level--;
     return _res;
 }
 
-// frozenset: '{{' star_named_expressions '}' '}'
+// frozenset: '{{' star_named_expressions '}' '}' | '{{' '/' '}' '}'
 static expr_ty
 frozenset_rule(Parser *p)
 {
@@ -16745,6 +16784,48 @@ frozenset_rule(Parser *p)
         p->mark = _mark;
         D(fprintf(stderr, "%*c%s frozenset[%d-%d]: %s failed!\n", p->level, ' ',
                   p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'{{' star_named_expressions '}' '}'"));
+    }
+    { // '{{' '/' '}' '}'
+        if (p->error_indicator) {
+            p->level--;
+            return NULL;
+        }
+        D(fprintf(stderr, "%*c> frozenset[%d-%d]: %s\n", p->level, ' ', _mark, p->mark, "'{{' '/' '}' '}'"));
+        Token * _literal;
+        Token * _literal_1;
+        Token * _literal_2;
+        Token * _literal_3;
+        if (
+            (_literal = _PyPegen_expect_token(p, 55))  // token='{{'
+            &&
+            (_literal_1 = _PyPegen_expect_token(p, 17))  // token='/'
+            &&
+            (_literal_2 = _PyPegen_expect_token(p, 26))  // token='}'
+            &&
+            (_literal_3 = _PyPegen_expect_token(p, 26))  // token='}'
+        )
+        {
+            D(fprintf(stderr, "%*c+ frozenset[%d-%d]: %s succeeded!\n", p->level, ' ', _mark, p->mark, "'{{' '/' '}' '}'"));
+            Token *_token = _PyPegen_get_last_nonnwhitespace_token(p);
+            if (_token == NULL) {
+                p->level--;
+                return NULL;
+            }
+            int _end_lineno = _token->end_lineno;
+            UNUSED(_end_lineno); // Only used by EXTRA macro
+            int _end_col_offset = _token->end_col_offset;
+            UNUSED(_end_col_offset); // Only used by EXTRA macro
+            _res = _PyAST_FrozenSet ( NULL , EXTRA );
+            if (_res == NULL && PyErr_Occurred()) {
+                p->error_indicator = 1;
+                p->level--;
+                return NULL;
+            }
+            goto done;
+        }
+        p->mark = _mark;
+        D(fprintf(stderr, "%*c%s frozenset[%d-%d]: %s failed!\n", p->level, ' ',
+                  p->error_indicator ? "ERROR!" : "-", _mark, p->mark, "'{{' '/' '}' '}'"));
     }
     _res = NULL;
   done:

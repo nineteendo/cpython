@@ -938,8 +938,12 @@ tuple[expr_ty]:
     | '(' a=[y=star_named_expression ',' z=[star_named_expressions] { _PyPegen_seq_insert_in_front(p, y, z) } ] ')' {
         _PyAST_Tuple(a, Load, EXTRA) }
 
-set[expr_ty]: '{' a=star_named_expressions '}' { _PyAST_Set(a, EXTRA) }
-frozenset[expr_ty]: '{{' a=star_named_expressions '}' '}' { _PyAST_FrozenSet(a, EXTRA) } # '}}' would break fstrings, don't document
+set[expr_ty]:
+    | '{' a=star_named_expressions '}' { _PyAST_Set(a, EXTRA) }
+    | '{' '/' '}' { _PyAST_Set(NULL, EXTRA) }
+frozenset[expr_ty]:
+    | '{{' a=star_named_expressions '}' '}' { _PyAST_FrozenSet(a, EXTRA) } # '}}' would break fstrings, don't document
+    | '{{' '/' '}' '}' { _PyAST_FrozenSet(NULL, EXTRA) } # '}}' would break fstrings, don't document
 
 # Dicts
 # -----
