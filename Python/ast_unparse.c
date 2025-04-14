@@ -318,6 +318,7 @@ append_ast_dict(_PyUnicodeWriter *writer, expr_ty e)
 
     APPEND_STR("{");
     value_count = asdl_seq_LEN(e->v.Dict.values);
+
     for (i = 0; i < value_count; i++) {
         APPEND_STR_IF(i > 0, ", ");
         key_node = (expr_ty)asdl_seq_GET(e->v.Dict.keys, i);

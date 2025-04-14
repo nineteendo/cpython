@@ -1692,7 +1692,6 @@ class _Unparser(NodeVisitor):
                 write_key_pattern_pair,
                 zip(keys, node.patterns, strict=True),
             )
-
             rest = node.rest
             if rest is not None:
                 if keys:

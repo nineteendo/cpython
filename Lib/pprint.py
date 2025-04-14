@@ -607,7 +607,6 @@ class PrettyPrinter:
                 items = sorted(object.items(), key=_safe_tuple)
             else:
                 items = object.items()
-
             for k, v in items:
                 krepr, kreadable, krecur = self.format(
                     k, context, maxlevels, level)

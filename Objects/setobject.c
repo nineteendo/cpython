@@ -553,6 +553,7 @@ set_repr_lock_held(PySetObject *so)
         goto done;
 
     /* repr(keys)[1:-1] */
+    Py_DECREF(keys);
     listrepr = PyObject_Repr(keys);
     if (listrepr == NULL)
         goto done;
